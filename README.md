@@ -4,7 +4,7 @@ This script automates the creation of remote access VPNs, along with other netwo
 
 ## Important Steps (Before Client Setup)
 ### Port forwarding
-If your server is behind a NAT (e.g., a home router), you must configure Port Forwarding on your router so the external traffic reaches this server's UDP port (e.g., 51820). For example, if the VPN is listening on port 51820, you create a rule to redirect any traffic hitting your router's public IP on port 51820 (external port) to your server's private IP on port 51820 (internal port).
+If your server is behind a NAT (e.g., a home router), you must configure Port Forwarding on your router so the external traffic reaches this server's UDP port (e.g., 51820). For example, if the VPN is listening on port 51820, you create a rule to redirect any UDP traffic hitting your router's public IP on port 51820 (external port) to your server's private IP on port 51820 (internal port).
 
 ### Client requirements
 If you specify a DNS server for a Debian / Ubuntu client, the resolvconf package must be installed on that system for the settings to take effect. If it is not installed, run:
