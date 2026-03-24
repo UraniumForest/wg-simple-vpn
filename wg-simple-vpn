@@ -734,10 +734,10 @@ function setup () {
 	echo -e "This VPN tunnel is already enabled (to start automatically on boot) and started (active now), so it should be fully functional."
 
 	echo -e "\nPaths:"
-    echo -e "\nPath of server configuration file: $srv_file_route"
+    echo -e "\n- Path of server configuration file: $srv_file_route"
 
     for ((i=0; i<num_clients; i++)); do
-        echo -e "\nPath of client $((i + 1)) configuration file: ${cli_file_route[$i]}"
+        echo -e "\n- Path of client $((i + 1)) configuration file: ${cli_file_route[$i]}"
     done
 
     echo -e "\nManagement commands (Only use them if necessary):"
