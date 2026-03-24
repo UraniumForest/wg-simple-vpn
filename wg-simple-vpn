@@ -741,10 +741,10 @@ function setup () {
     done
 
     echo -e "\nManagement commands (Only use them if necessary):"
-    echo -e "\n- Stop this VPN tunnel:    systemctl stop wg-quick@${vpn_env_name}_${srv_name}"
-    echo -e "\n- Disable this VPN tunnel: systemctl disable wg-quick@${vpn_env_name}_${srv_name}"
-    echo -e "\n- Start this VPN tunnel:   systemctl start wg-quick@${vpn_env_name}_${srv_name}"
-    echo -e "\n- Enable this VPN tunnel:  systemctl enable wg-quick@${vpn_env_name}_${srv_name}"
+    echo -e "\n- Stop this VPN tunnel: sudo systemctl stop wg-quick@${vpn_env_name}_${srv_name}"
+    echo -e "\n- Disable this VPN tunnel: sudo systemctl disable wg-quick@${vpn_env_name}_${srv_name}"
+    echo -e "\n- Start this VPN tunnel: sudo systemctl start wg-quick@${vpn_env_name}_${srv_name}"
+    echo -e "\n- Enable this VPN tunnel: sudo systemctl enable wg-quick@${vpn_env_name}_${srv_name}"
 	echo
 
     unset srv_priv srv_pub cli_priv cli_pub cli_endpoint cli_dns cli_allowed_ips vpn_tun_net srv_port
