@@ -75,6 +75,9 @@ Then, depending on the client's system you must do the following:
 
 ### Debian / Ubuntu
 ```bash
+# Install Wireguard
+sudo apt install wireguard
+
 # Replace 'client.conf' with your actual file name
 sudo cp client.conf /etc/wireguard/
 
