@@ -646,37 +646,64 @@ function setup () {
         sysctl -p "$sysctl_file" > /dev/null
     fi
 
-    if [[ "$nat_rule" = "true" || "$firewall_rules" = "true" ]]
-    then
-        echo "" >> "${srv_file_route}"
-    fi
-
     if [[ "$nat_rule" = "true" ]]
     then
-        echo "PostUp = iptables -t nat -C POSTROUTING -o $chosen_nic -j MASQUERADE || iptables -t nat -A POSTROUTING -o $chosen_nic -j MASQUERADE" >> "${srv_file_route}"
+        nat_service="/etc/systemd/system/wg-simple-vpn-nat.service"
+		cat <<-EOF > "${nat_service}"
+		[Unit]
+		Description=Enable NAT (MASQUERADE)
+		After=network-online.target
+		Wants=network-online.target
+
+		[Service]
+		Type=oneshot
+		ExecStart=/bin/sh -c "iptables -t nat -C POSTROUTING -o $chosen_nic -j MASQUERADE || iptables -t nat -A POSTROUTING -o $chosen_nic -j MASQUERADE"
+		RemainAfterExit=yes
+
+		[Install]
+		WantedBy=multi-user.target
+		EOF
+		systemctl daemon-reload
+		systemctl enable --now wg-simple-vpn-nat.service
     fi
 
     if [[ "$firewall_rules" = "true" ]]
     then
-        for ((i=0; i<num_clients; i++)); do
+		echo "" >> "${srv_file_route}"
+		for ((i=0; i<num_clients; i++)); do
+			cli_file_route="/etc/wireguard/clients/${vpn_env_name}_${cli_name[$i]}.conf"
 
-            if [[ $i -eq 0 ]]
-            then
-                echo "PostUp = iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT" >> "${srv_file_route}"
-                echo "PostDown = iptables -D FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT" >> "${srv_file_route}"
-            fi
+			if [[ $i -eq 0 ]] && ! iptables -C FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null
+			then
+				cat <<-EOF > /etc/systemd/system/wg-simple-vpn-conntrack.service
+				[Unit]
+				Description=Allow ESTABLISHED,RELATED connections globally
+				After=network-online.target
+				Wants=network-online.target
 
-            for ((j=0; j<cli_num_net_hosts[$i]; j++)); do
-                echo "PostUp = iptables -A FORWARD -s ${vpn_tun_net:0:-5}.$((i + 2)) -d ${cli_allowed_ips["$i,$j"]} -j ACCEPT" >> "${srv_file_route}"
-                echo "PostDown = iptables -D FORWARD -s ${vpn_tun_net:0:-5}.$((i + 2)) -d ${cli_allowed_ips["$i,$j"]} -j ACCEPT" >> "${srv_file_route}"
-            done
+				[Service]
+				Type=oneshot
+				ExecStart=/bin/sh -c "iptables -C FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT || iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT"
+				RemainAfterExit=yes
 
-            if [[ $i -eq $((num_clients - 1)) ]]
-            then
-                echo "PostUp = iptables -A FORWARD -i %i -j REJECT" >> "${srv_file_route}"
-                echo "PostDown = iptables -D FORWARD -i %i -j REJECT" >> "${srv_file_route}"
-            fi
-        done
+				[Install]
+				WantedBy=multi-user.target
+				EOF
+				systemctl daemon-reload
+				systemctl enable --now wg-simple-vpn-conntrack.service
+			fi
+
+			for ((j=0; j<cli_num_net_hosts[$i]; j++)); do
+				echo "PostUp = iptables -A FORWARD -s ${vpn_tun_net:0:-5}.$((i + 2)) -d ${cli_allowed_ips["$i,$j"]} -j ACCEPT" >> "${srv_file_route}"
+				echo "PostDown = iptables -D FORWARD -s ${vpn_tun_net:0:-5}.$((i + 2)) -d ${cli_allowed_ips["$i,$j"]} -j ACCEPT" >> "${srv_file_route}"
+			done
+
+			if [[ $i -eq $((num_clients - 1)) ]]
+			then
+				echo "PostUp = iptables -A FORWARD -i %i -j REJECT" >> "${srv_file_route}"
+				echo "PostDown = iptables -D FORWARD -i %i -j REJECT" >> "${srv_file_route}"
+			fi
+		done
     fi
 
     for ((i=0; i<num_clients; i++)); do
