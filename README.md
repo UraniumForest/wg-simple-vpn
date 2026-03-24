@@ -2,38 +2,35 @@
 ## Explanation
 This script automates the creation of remote access VPNs, along with other network configurations. It also generates QR codes for client configurations and allows you to check the status of all WireGuard VPNs.
 
-## Privileges
-All commands in this guide must be executed with root privileges. If you are on Ubuntu, prefix them with sudo. If you are on Debian, ensure you are logged in as the root user (su -).
-
 ## Installation
 ### Clone the repository:
 ```bash
-git clone https://github.com/UraniumForest/wg-simple-vpn.git
+sudo git clone https://github.com/UraniumForest/wg-simple-vpn.git
 cd wg-simple-vpn
 ```
 ### Give execution permission to the installer and run it:
 ```bash
-chmod +x install.sh
-./install.sh
+sudo chmod +x install.sh
+sudo ./install.sh
 ```
 ## Usage
 ### Create a remote access VPN
 
 Configure the server and multiple clients through a guided wizard.
 ```bash
-wg-simple-vpn add
+sudo wg-simple-vpn add
 ```
 ### Display clients configuration in QR codes
 
 Choose a client to display its configuration as a QR code for easy scanning.
 ```bash
-wg-simple-vpn show
+sudo wg-simple-vpn show
 ```
 ### Remote access VPNs status
 
 Check handshakes, data transfer, and the state of active tunnels.
 ```bash
-wg-simple-vpn status
+sudo wg-simple-vpn status
 ```
 ## Project Structure
 ### wg-simple-vpn
@@ -59,7 +56,7 @@ Then, depending on the client's system you must do the following:
 
 - Select "Scan from QR code".
 
-- Run `wg-simple-vpn show` on your server, select a client and scan the generated QR code with your phone.
+- Run `sudo wg-simple-vpn show` on your server, select a client and scan the generated QR code with your phone.
 
 - Give the VPN tunnel a name and switch it ON.
 
@@ -73,17 +70,17 @@ Then, depending on the client's system you must do the following:
 ### Debian / Ubuntu
 ```bash
 # Replace 'client.conf' with your actual file name
-cp client.conf /etc/wireguard/
+sudo cp client.conf /etc/wireguard/
 
 # (Optional) Enable auto-connect to the VPN on boot
-systemctl enable wg-quick@client
+sudo systemctl enable wg-quick@client
 
 # Connect to the VPN right now
-systemctl start wg-quick@client
+sudo systemctl start wg-quick@client
 ```
 If you want to stop the connection with the VPN, run the following command: 
 ```bash
-systemctl stop wg-quick@client
+sudo systemctl stop wg-quick@client
 ```
 ## Important steps
 ### Port Forwarding
@@ -91,7 +88,7 @@ If your server is behind a NAT (e.g., a home router), you must configure Port Fo
 ### Client requirements
 If you specify a DNS server for a Debian/Ubuntu client, the resolvconf package must be installed on that system for the settings to take effect. If it is not installed, run:
 ```bash
-apt update && apt install resolvconf
+sudo apt update && sudo apt install resolvconf
 ```
 ## System Requirements for server
 OS: Debian 11+, Ubuntu 20.04+.
