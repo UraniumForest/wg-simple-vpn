@@ -8,7 +8,7 @@ All commands in this guide must be executed with root privileges. If you are on 
 ## Installation
 ### Clone the repository:
 ```bash
-git clone https://github.com/UraniumForest/wg-simple-vpn
+git clone https://github.com/UraniumForest/wg-simple-vpn.git
 cd wg-simple-vpn
 ```
 ### Give execution permission to the installer and run it:
