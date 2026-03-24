@@ -402,8 +402,6 @@ function clients_configuration() {
             echo
             echo -e "Notice: This is the IP and port that client $((i + 1)) will use to reach the VPN."
             echo
-            echo -e "Important: If your server is behind a NAT (e.g., a home router), you must configure Port Forwarding so the external traffic reaches this server's UDP port ($srv_port)."
-            echo
             read -p "Enter the connection address for client $((i + 1)) (e.g., 200.120.50.11:$srv_port): " cli_endpoint[$i]
 
             if [[ ${cli_endpoint[$i]} =~ $ipv4_w_port_format ]]
