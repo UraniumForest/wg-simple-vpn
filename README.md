@@ -75,7 +75,7 @@ Then, depending on the client's system you must do the following:
 # Replace 'client.conf' with your actual file name
 cp client.conf /etc/wireguard/
 
-# (Optional) Enable auto-connect on boot
+# (Optional) Enable auto-connect to the VPN on boot
 systemctl enable wg-quick@client
 
 # Connect to the VPN right now
