@@ -34,3 +34,4 @@ chmod +x /usr/local/bin/wg-simple-vpn
 
 echo -e "\n${green}${bold}=== Installation Completed Successfully ===${nc}"
 echo -e "\nYou can now use the command: ${bold}wg-simple-vpn${nc}"
+echo
