@@ -731,19 +731,21 @@ function setup () {
     done
 
     systemctl enable --now "wg-quick@${vpn_env_name}_${srv_name}" >/dev/null 2>&1
-    echo -e "Paths:"
+	echo -e "This VPN tunnel is already enabled (to start automatically on boot) and started (active now), so it should be fully functional."
+
+	echo -e "\nPaths:"
     echo -e "\nPath of server configuration file: $srv_file_route"
 
     for ((i=0; i<num_clients; i++)); do
         echo -e "\nPath of client $((i + 1)) configuration file: ${cli_file_route[$i]}"
     done
 
-    echo -e "\nThis VPN tunnel is already enabled (to start automatically on boot) and started (active now), so it should be fully functional."
-    echo -e "Management commands (Only use them if necessary):"
+    echo -e "\nManagement commands (Only use them if necessary):"
     echo -e "\n- Stop this VPN tunnel:    systemctl stop wg-quick@${vpn_env_name}_${srv_name}"
     echo -e "\n- Disable this VPN tunnel: systemctl disable wg-quick@${vpn_env_name}_${srv_name}"
     echo -e "\n- Start this VPN tunnel:   systemctl start wg-quick@${vpn_env_name}_${srv_name}"
     echo -e "\n- Enable this VPN tunnel:  systemctl enable wg-quick@${vpn_env_name}_${srv_name}"
+	echo
 
     unset srv_priv srv_pub cli_priv cli_pub cli_endpoint cli_dns cli_allowed_ips vpn_tun_net srv_port
 }
