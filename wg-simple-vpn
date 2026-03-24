@@ -663,8 +663,8 @@ function setup () {
 		[Install]
 		WantedBy=multi-user.target
 		EOF
-		systemctl daemon-reload
-		systemctl enable --now wg-simple-vpn-nat.service
+		systemctl daemon-reload > /dev/null 2>&1
+		systemctl enable --now wg-simple-vpn-nat.service > /dev/null 2>&1
     fi
 
     if [[ "$firewall_rules" = "true" ]]
@@ -689,8 +689,8 @@ function setup () {
 				[Install]
 				WantedBy=multi-user.target
 				EOF
-				systemctl daemon-reload
-				systemctl enable --now wg-simple-vpn-conntrack.service
+				systemctl daemon-reload > /dev/null 2>&1
+				systemctl enable --now wg-simple-vpn-conntrack.service > /dev/null 2>&1
 			fi
 
 			for ((j=0; j<cli_num_net_hosts[$i]; j++)); do
