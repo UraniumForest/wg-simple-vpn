@@ -78,7 +78,7 @@ cp client.conf /etc/wireguard/
 # (Optional) Enable auto-connect on boot
 systemctl enable wg-quick@client
 
-# Connect to the VPN
+# Connect to the VPN right now
 systemctl start wg-quick@client
 ```
 If you want to stop the connection with the VPN, run the following command: 
