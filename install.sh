@@ -8,6 +8,7 @@ green='\033[0;32m'
 bold='\033[1m'
 nc='\033[0m'
 
+clear
 echo -e "${green}${bold}=== Starting wg-simple-vpn Installation ===${nc}"
 
 # Root check
