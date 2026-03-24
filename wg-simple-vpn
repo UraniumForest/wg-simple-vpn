@@ -233,6 +233,8 @@ function server_configuration() {
         echo
         echo -e "Notice: NAT (IP Masquerade) allows VPN clients to access the internet using the server's public IP address. Recommended for most setups."
         echo
+		echo -e "Important: NAT cannot be applied to the same interface twice. Select 'n' if you already applied it."
+		echo
         read -p "Apply a NAT rule automatically? (y/n): " optn_nat
 
         if [[ "$optn_nat" = "y" ]]
