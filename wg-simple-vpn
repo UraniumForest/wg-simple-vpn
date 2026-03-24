@@ -20,6 +20,7 @@ declare -A cli_allowed_ips
 declare -A cli_persist_ka
 declare -A cli_num_dns
 declare -A cli_num_net_hosts
+declare -A cli_file_route
 
 # Matches IPv4 addresses with CIDR notation
 ipv4_net_format='^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|0)/(3[0-2]|[12][0-9]|[0-9])$'
@@ -42,12 +43,14 @@ port_format='^(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]
 # Matches any positive integer (one or more digits)
 numbers_format='^[0-9]+$'
 
+
 # --- Root Check ---
 if [[ "$EUID" -ne 0 ]]
 then
     echo -e "Error: This script must be run as root (use sudo)."
     exit 1
 fi
+
 
 # --- Functions ---
 function check_dependencies() {
@@ -64,729 +67,750 @@ function check_dependencies() {
     if [ "$missing_dep" = true ]; then
         echo
         read -p "You must run your install script. Press [Enter] to exit..."
-		clear
+        clear
         exit 1
     fi
 }
 
+
 function common_configuration() {
-	clear
-	echo -e "${magenta}Notice: This configuration wizard is designed for IPv4 networks only. IPv6 is currently not supported.${color_reset}"
-	echo
-	echo -e "${bold_blue}-------- Common configuration --------${color_reset}"
-	echo
+    clear
+    echo -e "${magenta}Notice: This configuration wizard is designed for IPv4 networks only. IPv6 is currently not supported.${color_reset}"
+    echo
+    echo -e "${bold_blue}-------- Common configuration --------${color_reset}"
+    echo
 
-	while true; do
-		echo -e "${bold_cyan}[VPN Environment Name]${color_reset}"
-		echo
-		echo -e "Notice: This name will be part of the configuration file name. It must be unique and use 1-15 characters (lowercase letters and numbers only)."
-		echo
-		read -p "Enter a name for this VPN environment (e.g., home): " vpn_env_name
+    while true; do
+        echo -e "${bold_cyan}[VPN Environment Name]${color_reset}"
+        echo
+        echo -e "Notice: This name will be part of the configuration file name. It must be unique and use 1-15 characters (lowercase letters and numbers only)."
+        echo
+        read -p "Enter a name for this VPN environment (e.g., home): " vpn_env_name
 
-		if [[ $vpn_env_name =~ $name_format ]] && ! compgen -G "/etc/wireguard/${vpn_env_name}_*.conf" >/dev/null
-		then
-			clear
-			break
-		elif compgen -G "/etc/wireguard/${vpn_env_name}_*.conf" >/dev/null
-		then
-			echo
-			read -p "Error: A VPN environment with this name already exists. Choose a different name. Press [Enter] to continue..."
-			clear
-		else
-			echo
-			read -p "Error: Invalid format. Use 1-15 lowercase letters and numbers only. Press [Enter] to continue..."
-			clear
-		fi
-	done
+        if [[ $vpn_env_name =~ $name_format ]] && ! compgen -G "/etc/wireguard/${vpn_env_name}_*.conf" >/dev/null
+        then
+            clear
+            break
+        elif compgen -G "/etc/wireguard/${vpn_env_name}_*.conf" >/dev/null
+        then
+            echo
+            read -p "Error: A VPN environment with this name already exists. Choose a different name. Press [Enter] to continue..."
+            clear
+        else
+            echo
+            read -p "Error: Invalid format. Use 1-15 lowercase letters and numbers only. Press [Enter] to continue..."
+            clear
+        fi
+    done
 
-	while true; do
-		echo -e "${bold_cyan}[VPN Tunnel Network]${color_reset}"
-		echo
-		echo -e "Notice: The VPN Tunnel Network must be a /24 subnet (254 hosts). Ensure this range does not conflict with your local network or other active VPNs."
-		echo
-		read -p "Enter the network for the tunnel (e.g., 10.8.0.0/24): " vpn_tun_net
+    while true; do
+        echo -e "${bold_cyan}[VPN Tunnel Network]${color_reset}"
+        echo
+        echo -e "Notice: The VPN Tunnel Network must be a /24 subnet (254 hosts). Ensure this range does not conflict with your local network or other active VPNs."
+        echo
+        read -p "Enter the network for the tunnel (e.g., 10.8.0.0/24): " vpn_tun_net
 
-		if [[ $vpn_tun_net =~ $ipv4_net24_format ]]
-		then
-			if compgen -G "/etc/wireguard/*_*.conf" >/dev/null
-			then
-				if grep -qsF "Address = ${vpn_tun_net:0:-5}.1/24" /etc/wireguard/*_*.conf
-				then
-					echo
-					read -p "Error: This network is already in use by another tunnel. Choose a different network. Press [Enter] to continue..."
-					clear
-					continue
-				fi
-			fi
-			clear
-			break
-		else
-			echo
-			read -p "Error: Invalid format. Use IPv4 with /24 mask (e.g., 10.10.0.0/24). Press [Enter] to continue..."
-			clear
-		fi
-	done
+        if [[ $vpn_tun_net =~ $ipv4_net24_format ]]
+        then
+            if compgen -G "/etc/wireguard/*_*.conf" >/dev/null
+            then
+                if grep -qsF "Address = ${vpn_tun_net:0:-5}.1/24" /etc/wireguard/*_*.conf
+                then
+                    echo
+                    read -p "Error: This network is already in use by another tunnel. Choose a different network. Press [Enter] to continue..."
+                    clear
+                    continue
+                fi
+            fi
+            clear
+            break
+        else
+            echo
+            read -p "Error: Invalid format. Use IPv4 with /24 mask (e.g., 10.10.0.0/24). Press [Enter] to continue..."
+            clear
+        fi
+    done
 }
+
 
 function server_configuration() {
-	echo -e "${bold_blue}-------- Server configuration --------${color_reset}"
-	echo
+    echo -e "${bold_blue}-------- Server configuration --------${color_reset}"
+    echo
 
-	srv_priv=$(wg genkey)
-	srv_pub=$(wg pubkey <<< "$srv_priv")
+    srv_priv=$(wg genkey)
+    srv_pub=$(wg pubkey <<< "$srv_priv")
 
-	while true; do
-		echo -e "${bold_cyan}[Server Name]${color_reset}"
-		echo
-		echo -e "Notice: Use 1-15 characters (lowercase letters and numbers only)."
-		echo
-		echo -e "If left blank, the default name 'srv' will be assigned."
-		echo
-		read -p "Enter a name for the server (e.g., srv1): " srv_name
-		srv_name=${srv_name:-srv}
+    while true; do
+        echo -e "${bold_cyan}[Server Name]${color_reset}"
+        echo
+        echo -e "Notice: Use 1-15 characters (lowercase letters and numbers only)."
+        echo
+        echo -e "If left blank, the default name 'srv' will be assigned."
+        echo
+        read -p "Enter a name for the server (e.g., srv1): " srv_name
+        srv_name=${srv_name:-srv}
 
-		if [[ $srv_name =~ $name_format ]]
-		then
-			clear
-			break
-		else
-			echo
-			read -p "Error: Invalid format. Use 1-15 lowercase letters and numbers only. Press [Enter] to continue..."
-			clear
-		fi
-	done
+        if [[ $srv_name =~ $name_format ]]
+        then
+            clear
+            break
+        else
+            echo
+            read -p "Error: Invalid format. Use 1-15 lowercase letters and numbers only. Press [Enter] to continue..."
+            clear
+        fi
+    done
 
-	while true; do
-		echo -e "${bold_cyan}[UDP Listen Port]${color_reset}"
-		echo
-		echo -e "${bold_yellow}[[UDP Ports Currently In Use]]${color_reset}"
+    while true; do
+        echo -e "${bold_cyan}[UDP Listen Port]${color_reset}"
+        echo
+        echo -e "${bold_yellow}[[UDP Ports Currently In Use]]${color_reset}"
 
-		raw_ports_in_use=$(ss -uln | awk 'NR>1 {print $4}' | sed 's/.*://' | sort -nu)
+        raw_ports_in_use=$(ss -uln | awk 'NR>1 {print $4}' | sed 's/.*://' | sort -nu)
 
-		if [[ -n $raw_ports_in_use ]]
-		then
-			echo
-			echo "$raw_ports_in_use" | awk '{print NR ") " $1 "\n"}'
-		else
-			echo
-			echo -e "None (all UDP ports are available)."
-			echo
-		fi
+        if [[ -n $raw_ports_in_use ]]
+        then
+            echo
+            echo "$raw_ports_in_use" | awk '{print NR ") " $1 "\n"}'
+        else
+            echo
+            echo -e "None (all UDP ports are available)."
+            echo
+        fi
 
-		echo -e "WireGuard requires an available UDP port. To avoid service conflicts, do not select any port already listed in the "UDP ports in use" section above."
-		echo
-		read -p "Enter the VPN service port (e.g., 51820): " srv_port
+        echo -e "WireGuard requires an available UDP port. To avoid service conflicts, do not select any port already listed in the "UDP ports in use" section above."
+        echo
+        read -p "Enter the VPN service port (e.g., 51820): " srv_port
 
-		if [[ $srv_port =~ $port_format ]] && ! echo "$raw_ports_in_use" | grep -qw "$srv_port"
-		then
-			clear
-			break
-		elif echo "$raw_ports_in_use" | grep -qw "$srv_port"
-		then
-			echo
-			read -p "Error: This UDP port is already in use. Choose another one. Press [Enter] to continue..."
-			clear
-		else
-			echo
-			read -p "Error: Invalid port. Use a number between 1 and 65535. Press [Enter] to continue..."
-			clear
-		fi
-	done
+        if [[ $srv_port =~ $port_format ]] && ! echo "$raw_ports_in_use" | grep -qw "$srv_port"
+        then
+            clear
+            break
+        elif echo "$raw_ports_in_use" | grep -qw "$srv_port"
+        then
+            echo
+            read -p "Error: This UDP port is already in use. Choose another one. Press [Enter] to continue..."
+            clear
+        else
+            echo
+            read -p "Error: Invalid port. Use a number between 1 and 65535. Press [Enter] to continue..."
+            clear
+        fi
+    done
 
-	routing=false
-	sysctl_file="/etc/sysctl.d/99-wg-simple-vpn-forwarding.conf"
+    routing=false
+    sysctl_file="/etc/sysctl.d/99-wg-simple-vpn-forwarding.conf"
 
-	if [[ ! -f "$sysctl_file" ]]
-	then
-		while true; do
-			echo -e "${bold_cyan}[Routing]${color_reset}"
-			echo
-			echo -e "Notice: Routing allows the server to forward traffic between the VPN interface and other networks. Recommended for most setups."
-			echo
-			read -p "Enable routing automatically? (y/n): " optn_routing
+    if [[ ! -f "$sysctl_file" ]]
+    then
+        while true; do
+            echo -e "${bold_cyan}[Routing]${color_reset}"
+            echo
+            echo -e "Notice: Routing allows the server to forward traffic between the VPN interface and other networks. Recommended for most setups."
+            echo
+            read -p "Enable routing automatically? (y/n): " optn_routing
 
-			if [[ "$optn_routing" = "y" ]]
-			then
-				routing=true
-				clear
-				break
-			elif [[ "$optn_routing" = "n" ]]
-			then
-				clear
-				break
-			else
-				echo
-				read -p "Error: Invalid option. Enter 'y' or 'n'. Press [Enter] to continue..."
-				clear
-			fi
-		done
-	fi
+            if [[ "$optn_routing" = "y" ]]
+            then
+                routing=true
+                clear
+                break
+            elif [[ "$optn_routing" = "n" ]]
+            then
+                clear
+                break
+            else
+                echo
+                read -p "Error: Invalid option. Enter 'y' or 'n'. Press [Enter] to continue..."
+                clear
+            fi
+        done
+    fi
 
-	nat_rule=false
-	while true; do
-		echo -e "${bold_cyan}[NAT rule]${color_reset}"
-		echo
-		echo -e "Notice: NAT (IP Masquerade) allows VPN clients to access the internet using the server's public IP address. Recommended for most setups."
-		echo
-		read -p "Apply a NAT rule automatically? (y/n): " optn_nat
+    nat_rule=false
+    while true; do
+        echo -e "${bold_cyan}[NAT rule]${color_reset}"
+        echo
+        echo -e "Notice: NAT (IP Masquerade) allows VPN clients to access the internet using the server's public IP address. Recommended for most setups."
+        echo
+        read -p "Apply a NAT rule automatically? (y/n): " optn_nat
 
-		if [[ "$optn_nat" = "y" ]]
-		then
-			while true; do
-				default_nic=$(ip route | grep default | awk '{print $5}' | head -n1)
-				nic_array=()
+        if [[ "$optn_nat" = "y" ]]
+        then
+            while true; do
+                default_nic=$(ip route | grep default | awk '{print $5}' | head -n1)
+                nic_array=()
 
-				for dev in /sys/class/net/*; do
-					if [[ ! $(readlink "$dev") =~ "virtual" ]]
-					then
-						nic_array+=("$(basename "$dev")")
-					fi
-				done
+                for dev in /sys/class/net/*; do
+                    if [[ ! $(readlink "$dev") =~ "virtual" ]]
+                    then
+                        nic_array+=("$(basename "$dev")")
+                    fi
+                done
 
-				clear
-				echo -e "${bold_yellow}[[Network Interface Selection]]${color_reset}"
-				echo
-				echo -e "Notice: You should select the physical interface that provides internet access to this server."
-				echo
+                clear
+                echo -e "${bold_yellow}[[Network Interface Selection]]${color_reset}"
+                echo
+                echo -e "Notice: You should select the physical interface that provides internet access to this server."
+                echo
 
-				i=1
-				for nic in "${nic_array[@]}"; do
-					[ -z "$nic" ] && continue
-					
-					if [[ "$nic" == "$default_nic" ]]
-					then
-						echo -e "$i) $nic (Recommended / Internet access)"
-					else
-						echo -e "$i) $nic"
-					fi
-					echo ""
-					((i++))
-				done
+                i=1
+                for nic in "${nic_array[@]}"; do
+                    [ -z "$nic" ] && continue
+                    
+                    if [[ "$nic" == "$default_nic" ]]
+                    then
+                        echo -e "$i) $nic (Recommended / Internet access)"
+                    else
+                        echo -e "$i) $nic"
+                    fi
+                    echo ""
+                    ((i++))
+                done
 
-				read -p "Select the interface to apply NAT on (e.g., 1): " optn_iface
-				total_ifaces=${#nic_array[@]}
+                read -p "Select the interface to apply NAT on (e.g., 1): " optn_iface
+                total_ifaces=${#nic_array[@]}
 
-				if [[ "$optn_iface" =~ $numbers_format ]] && [[ "$optn_iface" -ge 1 && "$optn_iface" -le "$total_ifaces" ]]
-				then
-					index=$((optn_iface - 1))
-					chosen_nic=${nic_array[$index]}
+                if [[ "$optn_iface" =~ $numbers_format ]] && [[ "$optn_iface" -ge 1 && "$optn_iface" -le "$total_ifaces" ]]
+                then
+                    index=$((optn_iface - 1))
+                    chosen_nic=${nic_array[$index]}
 
-					if iptables -t nat -C POSTROUTING -o "$chosen_nic" -j MASQUERADE 2>/dev/null
-					then
-						echo
-						read -p "Notice: A NAT rule already exists on '$chosen_nic'. No changes will be made to avoid duplicates. Press [Enter] to continue..."
-						clear
-						break
-					else
-						nat_rule=true
-						clear
-						break
-					fi
-				else
-					echo
-					read -p "Error: Invalid selection. Choose a number from the list. Press [Enter] to continue..."
-					clear
-				fi
-			done
-			break
-		elif [[ "$optn_nat" = "n" ]]
-		then
-			clear
-			break
-		else
-			echo
-			read -p "Error: Invalid option. Enter 'y' or 'n'. Press [Enter] to continue..."
-			clear
-		fi
-	done
+                    if iptables -t nat -C POSTROUTING -o "$chosen_nic" -j MASQUERADE 2>/dev/null
+                    then
+                        echo
+                        read -p "Notice: A NAT rule already exists on '$chosen_nic'. No changes will be made to avoid duplicates. Press [Enter] to continue..."
+                        clear
+                        break
+                    else
+                        nat_rule=true
+                        clear
+                        break
+                    fi
+                else
+                    echo
+                    read -p "Error: Invalid selection. Choose a number from the list. Press [Enter] to continue..."
+                    clear
+                fi
+            done
+            break
+        elif [[ "$optn_nat" = "n" ]]
+        then
+            clear
+            break
+        else
+            echo
+            read -p "Error: Invalid option. Enter 'y' or 'n'. Press [Enter] to continue..."
+            clear
+        fi
+    done
 
-	firewall_rules=false
-	while true; do
-		echo -e "${bold_cyan}[Firewall Rules]${color_reset}"
-		echo
-		echo -e "Notice: These rules grant explicit permission for VPN traffic through the system's forwarding chain. Recommended for most setups."
-		echo
-		read -p "Apply firewall rules automatically? (y/n): " optn_firewall
+    firewall_rules=false
+    while true; do
+        echo -e "${bold_cyan}[Firewall Rules]${color_reset}"
+        echo
+        echo -e "Notice: These rules grant explicit permission for VPN traffic through the system's forwarding chain. Recommended for most setups."
+        echo
+        read -p "Apply firewall rules automatically? (y/n): " optn_firewall
 
-		if [[ "$optn_firewall" = "y" ]]
-		then
-			firewall_rules=true
-			clear
-			break
-		elif [[ "$optn_firewall" = "n" ]]
-		then
-			clear
-			break
-		else
-			echo
-			read -p "Error: Invalid option. Enter 'y' or 'n'. Press [Enter] to continue..."
-			clear
-		fi
-	done
+        if [[ "$optn_firewall" = "y" ]]
+        then
+            firewall_rules=true
+            clear
+            break
+        elif [[ "$optn_firewall" = "n" ]]
+        then
+            clear
+            break
+        else
+            echo
+            read -p "Error: Invalid option. Enter 'y' or 'n'. Press [Enter] to continue..."
+            clear
+        fi
+    done
 
-	while true; do
-		echo -e "${bold_cyan}[Number Of Clients]${color_reset}"
-		echo
-		echo -e "Notice: This wizard supports up to 253 clients for this subnet."
-		echo
-		echo -e "If left blank, the default number '1' will be assigned."
-		echo
-		read -p "Enter the number of clients to create (e.g., 1): " num_clients
-		num_clients=${num_clients:-1}
+    while true; do
+        echo -e "${bold_cyan}[Number Of Clients]${color_reset}"
+        echo
+        echo -e "Notice: This wizard supports up to 253 clients for this subnet."
+        echo
+        echo -e "If left blank, the default number '1' will be assigned."
+        echo
+        read -p "Enter the number of clients to create (e.g., 1): " num_clients
+        num_clients=${num_clients:-1}
 
-		if [[ "$num_clients" =~ $numbers_format ]] && [[ "$num_clients" -ge 1 && "$num_clients" -le 253 ]]
-		then
-			clear
-			break
-		else
-			echo
-			read -p "Error: Enter a valid number between 1 and 253. Press [Enter] to continue..."
-			clear
-		fi
-	done
+        if [[ "$num_clients" =~ $numbers_format ]] && [[ "$num_clients" -ge 1 && "$num_clients" -le 253 ]]
+        then
+            clear
+            break
+        else
+            echo
+            read -p "Error: Enter a valid number between 1 and 253. Press [Enter] to continue..."
+            clear
+        fi
+    done
 }
+
 
 function clients_configuration() {
-	echo -e "${bold_blue}-------- Clients configuration --------${color_reset}"
-	echo
+    echo -e "${bold_blue}-------- Clients configuration --------${color_reset}"
+    echo
 
-	for ((i=0; i<num_clients; i++)); do
-		cli_priv[$i]=$(wg genkey)
-		cli_pub[$i]=$(wg pubkey <<< "${cli_priv[$i]}")
+    for ((i=0; i<num_clients; i++)); do
+        cli_priv[$i]=$(wg genkey)
+        cli_pub[$i]=$(wg pubkey <<< "${cli_priv[$i]}")
 
-		while true; do
-			echo -e "${bold_cyan}[Client $((i + 1)) Name]${color_reset}"
-			echo
-			echo -e "Notice: This name will be part of the configuration file name. It must be unique and use 1-15 characters (lowercase letters and numbers only)."
-			echo
-			echo -e "If left blank, the default name 'cli$((i + 1))' will be assigned."
-			echo
-			read -p "Enter a name for client $((i + 1)) (e.g., james): " cli_name[$i]
-			cli_name[$i]=${cli_name[$i]:-cli$((i + 1))}
+        while true; do
+            echo -e "${bold_cyan}[Client $((i + 1)) Name]${color_reset}"
+            echo
+            echo -e "Notice: This name will be part of the configuration file name. It must be unique and use 1-15 characters (lowercase letters and numbers only)."
+            echo
+            echo -e "If left blank, the default name 'cli$((i + 1))' will be assigned."
+            echo
+            read -p "Enter a name for client $((i + 1)) (e.g., james): " cli_name[$i]
+            cli_name[$i]=${cli_name[$i]:-cli$((i + 1))}
 
-			duplicated=false
-			for j in "${!cli_name[@]}"; do
-				if [[ $j -ne $i && "${cli_name[$j]}" == "${cli_name[$i]}" ]]
-				then
-					duplicated=true
-					break
-				fi
-			done
+            duplicated=false
+            for j in "${!cli_name[@]}"; do
+                if [[ $j -ne $i && "${cli_name[$j]}" == "${cli_name[$i]}" ]]
+                then
+                    duplicated=true
+                    break
+                fi
+            done
 
-			if [[ ${cli_name[$i]} =~ $name_format && "$duplicated" == "false" ]]
-			then
-				clear
-				break
-			elif [[ "$duplicated" == "true" ]]
-			then
-				echo
-				read -p "Error: This name has already been used for another client in this setup. Choose another one. Press [Enter] to continue..."
-				clear
-			else
-				echo
-				read -p "Error: Invalid format. Use 1-15 lowercase letters and numbers only. Press [Enter] to continue..."
-				clear
-			fi
-		done
+            if [[ ${cli_name[$i]} =~ $name_format && "$duplicated" == "false" ]]
+            then
+                clear
+                break
+            elif [[ "$duplicated" == "true" ]]
+            then
+                echo
+                read -p "Error: This name has already been used for another client in this setup. Choose another one. Press [Enter] to continue..."
+                clear
+            else
+                echo
+                read -p "Error: Invalid format. Use 1-15 lowercase letters and numbers only. Press [Enter] to continue..."
+                clear
+            fi
+        done
 
-		while true; do
-			echo -e "${bold_cyan}[Client $((i + 1)) Connection Endpoint]${color_reset}"
-			echo
-			echo -e "Notice: This is the IP and port that client $((i + 1)) will use to reach the VPN."
-			echo
-			echo -e "Important: If your server is behind a NAT (e.g., a home router), you must configure Port Forwarding so the external traffic reaches this server's UDP port ($srv_port)."
-			echo
-			read -p "Enter the connection address for client $((i + 1)) (e.g., 200.120.50.11:$srv_port): " cli_endpoint[$i]
+        while true; do
+            echo -e "${bold_cyan}[Client $((i + 1)) Connection Endpoint]${color_reset}"
+            echo
+            echo -e "Notice: This is the IP and port that client $((i + 1)) will use to reach the VPN."
+            echo
+            echo -e "Important: If your server is behind a NAT (e.g., a home router), you must configure Port Forwarding so the external traffic reaches this server's UDP port ($srv_port)."
+            echo
+            read -p "Enter the connection address for client $((i + 1)) (e.g., 200.120.50.11:$srv_port): " cli_endpoint[$i]
 
-			if [[ ${cli_endpoint[$i]} =~ $ipv4_w_port_format ]]
-			then
-				clear
-				break
-			else
-				echo
-				read -p "Error: Invalid format. Make sure to include both the IPv4 and the port (e.g., 1.2.3.4:51820). Press [Enter] to continue..."
-				clear
-			fi
-		done
+            if [[ ${cli_endpoint[$i]} =~ $ipv4_w_port_format ]]
+            then
+                clear
+                break
+            else
+                echo
+                read -p "Error: Invalid format. Make sure to include both the IPv4 and the port (e.g., 1.2.3.4:51820). Press [Enter] to continue..."
+                clear
+            fi
+        done
 
-		while true; do
-			echo -e "${bold_cyan}[Client $((i + 1)) DNS]${color_reset}"
-			echo
-			echo -e "Notice: DNS servers resolve domain names (like google.com). If no DNS is specified, the client will continue to use its current system DNS settings."
-			echo
-			echo -e "1) Set primary and secondary DNS servers\n\n2) Only set a primary DNS server\n\n3) Don't set any DNS server"
-			echo
-			read -p "Choose an option (1 / 2 / 3): " optn_cli_dns
+        while true; do
+            echo -e "${bold_cyan}[Client $((i + 1)) DNS]${color_reset}"
+            echo
+            echo -e "Notice: DNS servers resolve domain names (like google.com). If no DNS is specified, the client will continue to use its current system DNS settings."
+            echo
+            echo -e "1) Set primary and secondary DNS servers\n\n2) Only set a primary DNS server\n\n3) Don't set any DNS server"
+            echo
+            read -p "Choose an option (1 / 2 / 3): " optn_cli_dns
 
-			if [[ "$optn_cli_dns" == "1" ]]
-			then
-				cli_num_dns[$i]=2
-				clear
-				while true; do
-					echo -e "${bold_yellow}[[Primary DNS]]${color_reset}"
-					echo
-					echo -e "If left blank, the default IP '8.8.8.8' will be assigned."
-					echo
-					read -p "Primary DNS IP (e.g., 1.1.1.1): " cli_dns["$i,0"]
-					cli_dns["$i,0"]=${cli_dns["$i,0"]:-8.8.8.8}
-					if [[ ${cli_dns["$i,0"]} =~ $ipv4_format ]]
-					then
-						clear
-						break
-					else
-						echo
-						read -p "Error: Invalid IPv4 format (e.g., 8.8.8.8). Press [Enter] to continue..."
-						clear
-					fi
-				done
+            if [[ "$optn_cli_dns" == "1" ]]
+            then
+                cli_num_dns[$i]=2
+                clear
+                while true; do
+                    echo -e "${bold_yellow}[[Primary DNS]]${color_reset}"
+                    echo
+                    echo -e "If left blank, the default IP '8.8.8.8' will be assigned."
+                    echo
+                    read -p "Primary DNS IP (e.g., 1.1.1.1): " cli_dns["$i,0"]
+                    cli_dns["$i,0"]=${cli_dns["$i,0"]:-8.8.8.8}
+                    if [[ ${cli_dns["$i,0"]} =~ $ipv4_format ]]
+                    then
+                        clear
+                        break
+                    else
+                        echo
+                        read -p "Error: Invalid IPv4 format (e.g., 8.8.8.8). Press [Enter] to continue..."
+                        clear
+                    fi
+                done
 
-				while true; do
-					echo -e "${bold_yellow}[[Secondary DNS]]${color_reset}"
-					echo
-					echo -e "If left blank, the default IP '8.8.4.4' will be assigned."
-					echo
-					read -p "Secondary DNS IP (e.g., 1.0.0.1): " cli_dns["$i,1"]
-					cli_dns["$i,1"]=${cli_dns["$i,1"]:-8.8.4.4}
-					if [[ ${cli_dns["$i,1"]} =~ $ipv4_format ]]
-					then
-						clear
-						break
-					else
-						echo
-						read -p "Error: Invalid IPv4 format (e.g., 8.8.4.4). Press [Enter] to continue..."
-						clear
-					fi
-				done
-				break
+                while true; do
+                    echo -e "${bold_yellow}[[Secondary DNS]]${color_reset}"
+                    echo
+                    echo -e "If left blank, the default IP '8.8.4.4' will be assigned."
+                    echo
+                    read -p "Secondary DNS IP (e.g., 1.0.0.1): " cli_dns["$i,1"]
+                    cli_dns["$i,1"]=${cli_dns["$i,1"]:-8.8.4.4}
+                    if [[ ${cli_dns["$i,1"]} =~ $ipv4_format ]]
+                    then
+                        clear
+                        break
+                    else
+                        echo
+                        read -p "Error: Invalid IPv4 format (e.g., 8.8.4.4). Press [Enter] to continue..."
+                        clear
+                    fi
+                done
+                break
 
-			elif [[ "$optn_cli_dns" == "2" ]]
-			then
-				cli_num_dns[$i]=1
-				clear
-				while true; do
-					echo -e "${bold_cyan}[[Primary DNS]]${color_reset}"
-					echo
-					echo -e "If left blank, the default IP '8.8.8.8' will be assigned."
-					echo
-					read -p "Primary DNS IP (e.g., 1.1.1.1): " cli_dns["$i,0"]
-					cli_dns["$i,0"]=${cli_dns["$i,0"]:-8.8.8.8}
-					if [[ ${cli_dns["$i,0"]} =~ $ipv4_format ]]
-					then
-						clear
-						break
-					else
-						echo
-						read -p "Error: Invalid IPv4 format (e.g., 8.8.8.8). Press [Enter] to continue..."
-						clear
-					fi
-				done
-				break
+            elif [[ "$optn_cli_dns" == "2" ]]
+            then
+                cli_num_dns[$i]=1
+                clear
+                while true; do
+                    echo -e "${bold_cyan}[[Primary DNS]]${color_reset}"
+                    echo
+                    echo -e "If left blank, the default IP '8.8.8.8' will be assigned."
+                    echo
+                    read -p "Primary DNS IP (e.g., 1.1.1.1): " cli_dns["$i,0"]
+                    cli_dns["$i,0"]=${cli_dns["$i,0"]:-8.8.8.8}
+                    if [[ ${cli_dns["$i,0"]} =~ $ipv4_format ]]
+                    then
+                        clear
+                        break
+                    else
+                        echo
+                        read -p "Error: Invalid IPv4 format (e.g., 8.8.8.8). Press [Enter] to continue..."
+                        clear
+                    fi
+                done
+                break
 
-			elif [[ "$optn_cli_dns" == "3" ]]
-			then
-				cli_num_dns[$i]=0
-				clear
-				break
-			else
-				echo
-				read -p "Error: Invalid option. Choose 1, 2, or 3. Press [Enter] to continue..."
-				clear
-			fi
-		done
+            elif [[ "$optn_cli_dns" == "3" ]]
+            then
+                cli_num_dns[$i]=0
+                clear
+                break
+            else
+                echo
+                read -p "Error: Invalid option. Choose 1, 2, or 3. Press [Enter] to continue..."
+                clear
+            fi
+        done
 
-		while true; do
-			echo -e "${bold_cyan}[Tunnel Mode For Client $((i + 1))]${color_reset}"
-			echo
-			echo -e "1) Full Tunnel (routes all internet and network traffic through the VPN).\n\n2) Split Tunnel (only routes traffic destined for specific networks/hosts you define)."
-			echo
-			read -p "Choose an option (1 / 2): " optn_cli_allwd_ips
+        while true; do
+            echo -e "${bold_cyan}[Tunnel Mode For Client $((i + 1))]${color_reset}"
+            echo
+            echo -e "1) Full Tunnel (routes all internet and network traffic through the VPN).\n\n2) Split Tunnel (only routes traffic destined for specific networks/hosts you define)."
+            echo
+            read -p "Choose an option (1 / 2): " optn_cli_allwd_ips
 
-			if [[ "$optn_cli_allwd_ips" == "1" ]]
-			then
-				cli_num_net_hosts[$i]=1
-				cli_allowed_ips["$i,0"]="0.0.0.0/0"
-				clear
-				break
-			elif [[ "$optn_cli_allwd_ips" == "2" ]]
-			then
-				clear
-				while true; do
-					echo -e "${bold_yellow}[[Number Of Networks/Hosts]]${color_reset}"
-					echo
-					echo -e "If left blank, the default number '1' will be assigned."
-					echo
-					read -p "Number of networks/hosts to grant access to for client $((i + 1)) (e.g., 2): " cli_num_net_hosts[$i]
-					cli_num_net_hosts[$i]=${cli_num_net_hosts[$i]:-1}
+            if [[ "$optn_cli_allwd_ips" == "1" ]]
+            then
+                cli_num_net_hosts[$i]=1
+                cli_allowed_ips["$i,0"]="0.0.0.0/0"
+                clear
+                break
+            elif [[ "$optn_cli_allwd_ips" == "2" ]]
+            then
+                clear
+                while true; do
+                    echo -e "${bold_yellow}[[Number Of Networks/Hosts]]${color_reset}"
+                    echo
+                    echo -e "If left blank, the default number '1' will be assigned."
+                    echo
+                    read -p "Number of networks/hosts to grant access to for client $((i + 1)) (e.g., 2): " cli_num_net_hosts[$i]
+                    cli_num_net_hosts[$i]=${cli_num_net_hosts[$i]:-1}
 
-					if [[ "${cli_num_net_hosts[$i]}" =~ $numbers_format ]] && [[ "${cli_num_net_hosts[$i]}" -ge 1 ]]
-					then
-						clear
-						break
-					else
-						echo
-						read -p "Error: Enter a valid number (1 or more). Press [Enter] to continue..."
-						clear
-					fi
-				done
+                    if [[ "${cli_num_net_hosts[$i]}" =~ $numbers_format ]] && [[ "${cli_num_net_hosts[$i]}" -ge 1 ]]
+                    then
+                        clear
+                        break
+                    else
+                        echo
+                        read -p "Error: Enter a valid number (1 or more). Press [Enter] to continue..."
+                        clear
+                    fi
+                done
 
-				for ((j=0; j<cli_num_net_hosts[$i]; j++)); do
-					clear
-					while true; do
-						echo -e "${bold_yellow}[[Network $((j + 1)) Of ${cli_num_net_hosts[$i]}]]${color_reset}"
-						echo
-						read -p "Enter a network (e.g., 192.168.1.0/24) or host IP (e.g., 192.168.1.10/32): " cli_allowed_ips["$i,$j"]
-						if [[ ${cli_allowed_ips["$i,$j"]} =~ $ipv4_net_format ]]
-						then
-							clear
-							break
-						else
-							echo
-							read -p "Error: Invalid format. Use IPv4 with mask (e.g., 192.168.10.0/24). Press [Enter] to continue..."
-							clear
-						fi
-					done
-				done
-				break
-			else
-				echo
-				read -p "Error: Invalid option. Choose 1 or 2. Press [Enter] to continue..."
-				clear
-			fi
-		done
+                for ((j=0; j<cli_num_net_hosts[$i]; j++)); do
+                    clear
+                    while true; do
+                        echo -e "${bold_yellow}[[Network $((j + 1)) Of ${cli_num_net_hosts[$i]}]]${color_reset}"
+                        echo
+                        read -p "Enter a network (e.g., 192.168.1.0/24) or host IP (e.g., 192.168.1.10/32): " cli_allowed_ips["$i,$j"]
+                        if [[ ${cli_allowed_ips["$i,$j"]} =~ $ipv4_net_format ]]
+                        then
+                            clear
+                            break
+                        else
+                            echo
+                            read -p "Error: Invalid format. Use IPv4 with mask (e.g., 192.168.10.0/24). Press [Enter] to continue..."
+                            clear
+                        fi
+                    done
+                done
+                break
+            else
+                echo
+                read -p "Error: Invalid option. Choose 1 or 2. Press [Enter] to continue..."
+                clear
+            fi
+        done
 
-		while true; do
-			echo -e "${bold_cyan}[Client $((i + 1)) Persistent Keepalive]${color_reset}"
-			echo
-			echo -e "Notice: This sends a small 'heartbeat' packet to keep the connection active through NAT routers and firewalls. Set to 0 to disable this feature."
-			echo
-			echo -e "If left blank, the default number '25' (recommended for most users) will be assigned."
-			echo
-			read -p "Enter keepalive interval in seconds for client $((i + 1)) (e.g., 25): " cli_persist_ka[$i]
-			cli_persist_ka[$i]=${cli_persist_ka[$i]:-25}
+        while true; do
+            echo -e "${bold_cyan}[Client $((i + 1)) Persistent Keepalive]${color_reset}"
+            echo
+            echo -e "Notice: This sends a small 'heartbeat' packet to keep the connection active through NAT routers and firewalls. Set to 0 to disable this feature."
+            echo
+            echo -e "If left blank, the default number '25' (recommended for most users) will be assigned."
+            echo
+            read -p "Enter keepalive interval in seconds for client $((i + 1)) (e.g., 25): " cli_persist_ka[$i]
+            cli_persist_ka[$i]=${cli_persist_ka[$i]:-25}
 
-			if [[ "${cli_persist_ka[$i]}" =~ $numbers_format ]] && [[ "${cli_persist_ka[$i]}" -ge 0 && "${cli_persist_ka[$i]}" -le 65535 ]]
-			then
-				clear
-				break
-			else
-				echo
-				read -p "Error: Enter a valid number between 0 and 65535. Press [Enter] to continue..."
-				clear
-			fi
-		done
-	done
+            if [[ "${cli_persist_ka[$i]}" =~ $numbers_format ]] && [[ "${cli_persist_ka[$i]}" -ge 0 && "${cli_persist_ka[$i]}" -le 65535 ]]
+            then
+                clear
+                break
+            else
+                echo
+                read -p "Error: Enter a valid number between 0 and 65535. Press [Enter] to continue..."
+                clear
+            fi
+        done
+    done
 }
+
 
 function confirmation() {
-	while true; do
-		echo -e "${bold_cyan}[Confirmation]${color_reset}"
-		echo
-		echo -e "Is the information you entered correct?\n\nIf so, the system will now:\n\n- Generate the configuration files\n\n- Enable and start the VPN tunnel"
+    while true; do
+        echo -e "${bold_cyan}[Confirmation]${color_reset}"
+        echo
+        echo -e "Is the information you entered correct?\n\nIf so, the system will now:\n\n- Generate the configuration files\n\n- Enable and start the VPN tunnel"
 
-		if [[ "$routing" = "true" ]]
-		then
-			echo
-			echo -e "- Enable routing"
-		fi
+        if [[ "$routing" = "true" ]]
+        then
+            echo
+            echo -e "- Enable routing"
+        fi
 
-		if [[ "$nat_rule" = "true" ]]
-		then
-			echo
-			echo -e "- Apply a nat rule"
-		fi
+        if [[ "$nat_rule" = "true" ]]
+        then
+            echo
+            echo -e "- Apply a nat rule"
+        fi
 
-		if [[ "$firewall_rules" = "true" ]]
-		then
-			echo
-			echo -e "- Apply firewall rules"
-		fi
+        if [[ "$firewall_rules" = "true" ]]
+        then
+            echo
+            echo -e "- Apply firewall rules"
+        fi
 
-		echo
-		read -p "Proceed with setup? (y/n): " optn_setup
+        echo
+        read -p "Proceed with setup? (y/n): " optn_setup
 
-		if [[ "$optn_setup" = "y" ]]
-		then
-			clear
-			break
-		elif [[ "$optn_setup" = "n" ]]
-		then
-			echo
-			read -p "Setup canceled. No changes were made. Press [Enter] to exit..."
-			clear
-			exit 0
-		else
-			echo
-			read -p "Error: Invalid option. Enter 'y' or 'n'. Press [Enter] to continue..."
-			clear
-		fi
-	done
+        if [[ "$optn_setup" = "y" ]]
+        then
+            clear
+            break
+        elif [[ "$optn_setup" = "n" ]]
+        then
+            echo
+            read -p "Setup canceled. No changes were made. Press [Enter] to exit..."
+            clear
+            exit 0
+        else
+            echo
+            read -p "Error: Invalid option. Enter 'y' or 'n'. Press [Enter] to continue..."
+            clear
+        fi
+    done
 }
 
+
 function setup () {
+    srv_file_route="/etc/wireguard/${vpn_env_name}_${srv_name}.conf"
 
-	srv_file_route="/etc/wireguard/${vpn_env_name}_${srv_name}.conf"
-
-	cat <<-EOF >> "${srv_file_route}"
+    cat <<-EOF >> "${srv_file_route}"
 	[Interface]
 	Address = ${vpn_tun_net:0:-5}.1/24
 	ListenPort = ${srv_port}
 	PrivateKey = ${srv_priv}
 	EOF
 
-	if [[ "$routing" = "true" ]]
-	then
-		echo "net.ipv4.ip_forward=1" > "$sysctl_file"
-		sysctl -p "$sysctl_file" > /dev/null
-	fi
+    if [[ "$routing" = "true" ]]
+    then
+        echo "net.ipv4.ip_forward=1" > "$sysctl_file"
+        sysctl -p "$sysctl_file" > /dev/null
+    fi
 
-	if [[ "$nat_rule" = "true" || "$firewall_rules" = "true" ]]
-	then
-		echo "" >> "${srv_file_route}"
-	fi
+    if [[ "$nat_rule" = "true" || "$firewall_rules" = "true" ]]
+    then
+        echo "" >> "${srv_file_route}"
+    fi
 
-	if [[ "$nat_rule" = "true" ]]
-	then
-		echo "PostUp = iptables -t nat -C POSTROUTING -o $chosen_nic -j MASQUERADE || iptables -t nat -A POSTROUTING -o $chosen_nic -j MASQUERADE" >> "${srv_file_route}"
-	fi
+    if [[ "$nat_rule" = "true" ]]
+    then
+        echo "PostUp = iptables -t nat -C POSTROUTING -o $chosen_nic -j MASQUERADE || iptables -t nat -A POSTROUTING -o $chosen_nic -j MASQUERADE" >> "${srv_file_route}"
+    fi
 
-	if [[ "$firewall_rules" = "true" ]]
-	then
-		for ((i=0; i<num_clients; i++)); do
-			cli_file_route="/etc/wireguard/clients/${vpn_env_name}_${cli_name[$i]}.conf"
+    if [[ "$firewall_rules" = "true" ]]
+    then
+        for ((i=0; i<num_clients; i++)); do
 
-			if [[ $i -eq 0 ]]
-			then
-				echo "PostUp = iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT" >> "${srv_file_route}"
-				echo "PostDown = iptables -D FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT" >> "${srv_file_route}"
-			fi
+            if [[ $i -eq 0 ]]
+            then
+                echo "PostUp = iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT" >> "${srv_file_route}"
+                echo "PostDown = iptables -D FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT" >> "${srv_file_route}"
+            fi
 
-			for ((j=0; j<cli_num_net_hosts[$i]; j++)); do
-				echo "PostUp = iptables -A FORWARD -s ${vpn_tun_net:0:-5}.$((i + 2)) -d ${cli_allowed_ips["$i,$j"]} -j ACCEPT" >> "${srv_file_route}"
-				echo "PostDown = iptables -D FORWARD -s ${vpn_tun_net:0:-5}.$((i + 2)) -d ${cli_allowed_ips["$i,$j"]} -j ACCEPT" >> "${srv_file_route}"
-			done
+            for ((j=0; j<cli_num_net_hosts[$i]; j++)); do
+                echo "PostUp = iptables -A FORWARD -s ${vpn_tun_net:0:-5}.$((i + 2)) -d ${cli_allowed_ips["$i,$j"]} -j ACCEPT" >> "${srv_file_route}"
+                echo "PostDown = iptables -D FORWARD -s ${vpn_tun_net:0:-5}.$((i + 2)) -d ${cli_allowed_ips["$i,$j"]} -j ACCEPT" >> "${srv_file_route}"
+            done
 
-			if [[ $i -eq $((num_clients - 1)) ]]
-			then
-				echo "PostUp = iptables -A FORWARD -i %i -j REJECT" >> "${srv_file_route}"
-				echo "PostDown = iptables -D FORWARD -i %i -j REJECT" >> "${srv_file_route}"
-			fi
-		done
-	fi
+            if [[ $i -eq $((num_clients - 1)) ]]
+            then
+                echo "PostUp = iptables -A FORWARD -i %i -j REJECT" >> "${srv_file_route}"
+                echo "PostDown = iptables -D FORWARD -i %i -j REJECT" >> "${srv_file_route}"
+            fi
+        done
+    fi
 
-	for ((i=0; i<num_clients; i++)); do
-		cli_file_route="/etc/wireguard/clients/${vpn_env_name}_${cli_name[$i]}.conf"
+    for ((i=0; i<num_clients; i++)); do
+        cli_file_route[$i]="/etc/wireguard/clients/${vpn_env_name}_${cli_name[$i]}.conf"
 
-		cat <<-EOF >> "${srv_file_route}"
-		
+        cat <<-EOF >> "${srv_file_route}"
+
 		[Peer]
 		PublicKey = ${cli_pub[$i]}
 		AllowedIPs = ${vpn_tun_net:0:-5}.$((i + 2))/32
 		EOF
 
-		cat <<-EOF >> "${cli_file_route}"
+        cat <<-EOF >> "${cli_file_route[$i]}"
 		[Interface]
 		Address = ${vpn_tun_net:0:-5}.$((i + 2))/24
 		PrivateKey = ${cli_priv[$i]}
 		EOF
 
-		for ((j=0; j<cli_num_dns[$i]; j++)); do
-			if [[ $j -eq 0 ]]
-			then
-				echo -n "DNS = ${cli_dns["$i,$j"]}" >> "${cli_file_route}"
-			else
-				echo -n ", ${cli_dns["$i,$j"]}" >> "${cli_file_route}"
-			fi
-		done
-		
-		if [[ ${cli_num_dns[$i]} -ne 0 ]]
-		then
-			echo "" >> "${cli_file_route}"
-		fi
+        for ((j=0; j<cli_num_dns[$i]; j++)); do
+            if [[ $j -eq 0 ]]
+            then
+                echo -n "DNS = ${cli_dns["$i,$j"]}" >> "${cli_file_route[$i]}"
+            else
+                echo -n ", ${cli_dns["$i,$j"]}" >> "${cli_file_route[$i]}"
+            fi
+        done
+        
+        if [[ ${cli_num_dns[$i]} -ne 0 ]]
+        then
+            echo "" >> "${cli_file_route[$i]}"
+        fi
 
-		cat <<-EOF >> "${cli_file_route}"
+        cat <<-EOF >> "${cli_file_route[$i]}"
 
 		[Peer]
 		PublicKey = ${srv_pub}
 		Endpoint = ${cli_endpoint[$i]}
 		EOF
 
-		for ((j=0; j<cli_num_net_hosts[$i]; j++)); do
-			if [[ $j -eq 0 ]]
-			then
-				echo -n "AllowedIPs = ${cli_allowed_ips["$i,$j"]}" >> "${cli_file_route}"
-			else
-				echo -n ", ${cli_allowed_ips["$i,$j"]}" >> "${cli_file_route}"
-			fi
-		done
-		echo "" >> "${cli_file_route}"
+        for ((j=0; j<cli_num_net_hosts[$i]; j++)); do
+            if [[ $j -eq 0 ]]
+            then
+                echo -n "AllowedIPs = ${cli_allowed_ips["$i,$j"]}" >> "${cli_file_route[$i]}"
+            else
+                echo -n ", ${cli_allowed_ips["$i,$j"]}" >> "${cli_file_route[$i]}"
+            fi
+        done
+        echo "" >> "${cli_file_route[$i]}"
 
-		echo "PersistentKeepalive = ${cli_persist_ka[$i]}" >> "${cli_file_route}"
+        echo "PersistentKeepalive = ${cli_persist_ka[$i]}" >> "${cli_file_route[$i]}"
 
-	done
+    done
 
-	systemctl enable --now "wg-quick@${vpn_env_name}_${srv_name}" >/dev/null 2>&1
-	unset srv_priv srv_pub cli_priv cli_pub cli_endpoint cli_dns cli_allowed_ips vpn_tun_net srv_port
+    systemctl enable --now "wg-quick@${vpn_env_name}_${srv_name}" >/dev/null 2>&1
+    echo -e "Paths:"
+    echo -e "\nPath of server configuration file: $srv_file_route"
+
+    for ((i=0; i<num_clients; i++)); do
+        echo -e "\nPath of client $((i + 1)) configuration file: ${cli_file_route[$i]}"
+    done
+
+    echo -e "\nThis VPN tunnel is already enabled (to start automatically on boot) and started (active now), so it should be fully functional."
+    echo -e "Management commands (Only use them if necessary):"
+    echo -e "\n- Stop this VPN tunnel:    systemctl stop wg-quick@${vpn_env_name}_${srv_name}"
+    echo -e "\n- Disable this VPN tunnel: systemctl disable wg-quick@${vpn_env_name}_${srv_name}"
+    echo -e "\n- Start this VPN tunnel:   systemctl start wg-quick@${vpn_env_name}_${srv_name}"
+    echo -e "\n- Enable this VPN tunnel:  systemctl enable wg-quick@${vpn_env_name}_${srv_name}"
+
+    unset srv_priv srv_pub cli_priv cli_pub cli_endpoint cli_dns cli_allowed_ips vpn_tun_net srv_port
 }
+
 
 function show_clients_qr() {
-	clear
-	while true; do
-		echo -e "${bold_cyan}[Current WireGuard Clients]${color_reset}"
-		echo
-		ls /etc/wireguard/clients/*.conf 2>/dev/null | xargs -n 1 basename | sed 's/\.conf//' | nl -w1 -s") " | sed 'G'
-		total_clients=$(ls /etc/wireguard/clients/*.conf 2>/dev/null | wc -l)
+    clear
+    while true; do
+        echo -e "${bold_cyan}[Current WireGuard Clients]${color_reset}"
+        echo
+        ls /etc/wireguard/clients/*.conf 2>/dev/null | xargs -n 1 basename | sed 's/\.conf//' | nl -w1 -s") " | sed 'G'
+        total_clients=$(ls /etc/wireguard/clients/*.conf 2>/dev/null | wc -l)
 
-		if [[ "$total_clients" -eq 0 ]]
-		then
-			read -p "There are no clients configured yet. Press [Enter] to exit..."
-			clear
-			break
-		else
-			echo -e "Notice: If you want to exit, insert the value '0'."
-			echo
-			read -p "Select a client to generate its configuration QR code (e.g., 1): " cli_num
+        if [[ "$total_clients" -eq 0 ]]
+        then
+            read -p "There are no clients configured yet. Press [Enter] to exit..."
+            clear
+            break
+        else
+            echo -e "Notice: If you want to exit, insert the value '0'."
+            echo
+            read -p "Select a client to generate its configuration QR code (e.g., 1): " cli_num
 
-			if [[ "$cli_num" =~ $numbers_format ]] && [[ "$cli_num" -ge 1 && "$cli_num" -le "$total_clients" ]]
-			then
-				selected_file_path=$(ls /etc/wireguard/clients/*.conf 2>/dev/null | sed -n "${cli_num}p")
-				clear
-				qrencode -t ansiutf8 < "$selected_file_path"
-				echo
-				read -p "Scan the QR code, then press [Enter] to continue..."
-				clear
-			elif [[ "$cli_num" == "0" ]]
-			then
-				clear
-				break
-			else
-				echo
-				read -p "Error: Invalid selection. Choose a number from the list. Press [Enter] to continue..."
-				clear
-			fi
-		fi
-	done
+            if [[ "$cli_num" =~ $numbers_format ]] && [[ "$cli_num" -ge 1 && "$cli_num" -le "$total_clients" ]]
+            then
+                selected_file_path=$(ls /etc/wireguard/clients/*.conf 2>/dev/null | sed -n "${cli_num}p")
+                clear
+                qrencode -t ansiutf8 < "$selected_file_path"
+                echo
+                read -p "Scan the QR code, then press [Enter] to continue..."
+                clear
+            elif [[ "$cli_num" == "0" ]]
+            then
+                clear
+                break
+            else
+                echo
+                read -p "Error: Invalid selection. Choose a number from the list. Press [Enter] to continue..."
+                clear
+            fi
+        fi
+    done
 }
+
 
 function show_tunnels_status() {
-	clear
-	echo -e "${bold_cyan}[Current Wireguard Status]${color_reset}"
-	echo
-	wg show
-	echo
-	read -p "Press [Enter] to exit..."
-	clear
+    clear
+    echo -e "${bold_cyan}[Current Wireguard Status]${color_reset}"
+    echo
+    wg show
+    echo
+    read -p "Press [Enter] to exit..."
+    clear
 }
+
 
 # --- Main Logic ---
 case "$1" in
     add)
         check_dependencies
-		common_configuration
-		server_configuration
-		clients_configuration
-		confirmation
-		setup
+        common_configuration
+        server_configuration
+        clients_configuration
+        confirmation
+        setup
         ;;
+
     show)
         check_dependencies
         show_clients_qr
