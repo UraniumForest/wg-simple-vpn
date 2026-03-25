@@ -650,7 +650,7 @@ function setup () {
 
     if [[ "$nat_rule" = "true" ]]
     then
-        nat_service="/etc/systemd/system/wg-simple-vpn-nat.service"
+        nat_service="/etc/systemd/system/wg-simple-vpn-nat-${chosen_nic}.service"
 		cat <<-EOF > "${nat_service}"
 		[Unit]
 		Description=Enable NAT (MASQUERADE)
@@ -666,7 +666,7 @@ function setup () {
 		WantedBy=multi-user.target
 		EOF
 		systemctl daemon-reload > /dev/null 2>&1
-		systemctl enable --now wg-simple-vpn-nat.service > /dev/null 2>&1
+		systemctl enable --now wg-simple-vpn-nat-${chosen_nic}.service > /dev/null 2>&1
     fi
 
     if [[ "$firewall_rules" = "true" ]]
