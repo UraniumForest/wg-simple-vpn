@@ -1,5 +1,5 @@
 # wg-simple-vpn
-## Explanation
+## Description
 This script automates the creation of remote access VPNs, along with other network configurations. It also generates QR codes for client configurations and allows you to check the status of all WireGuard VPNs.
 
 ## Important Steps
