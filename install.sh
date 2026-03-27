@@ -19,8 +19,7 @@ fi
 
 # Dependency Installation
 echo -e "\n${bold}1. Installing required packages...${nc}"
-apt update
-apt install -y wireguard qrencode iptables
+apt update && apt install -y wireguard-tools qrencode iptables iproute2
 
 # Directory Structure
 echo -e "\n${bold}2. Creating configuration directories...${nc}"
