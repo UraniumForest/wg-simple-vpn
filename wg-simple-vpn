@@ -402,7 +402,7 @@ function clients_configuration() {
             echo
             echo -e "Notice: This is the IP and port that client $((i + 1)) will use to reach the VPN."
             echo
-			echo -e "Important: If your server is behind a NAT (e.g., a home router), you must enter your PUBLIC IP address and the external port you configured for Port Forwarding in your router (see README for details).
+			echo -e "Important: If your server is behind a NAT (e.g., a home router), you must enter your PUBLIC IP address and the external port you configured for Port Forwarding in your router (see README for details)."
 			echo
             read -p "Enter the connection address for client $((i + 1)) (e.g., 200.120.50.11:$srv_port): " cli_endpoint[$i]
 
