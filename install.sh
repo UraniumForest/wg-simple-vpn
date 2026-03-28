@@ -13,7 +13,7 @@ echo -e "${green}${bold}=== Starting wg-simple-vpn Installation ===${nc}"
 
 # Root check
 if [[ "$EUID" -ne 0 ]]; then
-    echo "\nError: This script must be run with sudo."
+    echo -e "\nError: This script must be run with sudo."
     exit 1
 fi
 
