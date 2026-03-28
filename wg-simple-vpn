@@ -47,7 +47,7 @@ numbers_format='^[0-9]+$'
 # --- Root Check ---
 if [[ "$EUID" -ne 0 ]]
 then
-    echo -e "Error: This script must be run as root (use sudo)."
+    echo -e "\nError: This script must be run as root (use sudo).\n"
     exit 1
 fi
 
@@ -59,6 +59,7 @@ function check_dependencies() {
 
     for dep in "${dependencies[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
+			echo
             echo -e "Error: Command '$dep' is not installed."
             missing_dep=true
         fi
