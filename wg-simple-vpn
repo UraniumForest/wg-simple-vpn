@@ -505,7 +505,7 @@ function clients_configuration() {
         while true; do
             echo -e "${bold_cyan}[Tunnel Mode For Client $((i + 1))]${color_reset}"
             echo
-            echo -e "1) Full Tunnel (routes all internet and network traffic through the VPN).\n\n2) Split Tunnel (only routes traffic destined for specific networks/hosts you define)."
+            echo -e "1) Full Tunnel (routes all internet and network traffic through the VPN).\n\n2) Split Tunnel (only routes traffic destined for specific networks/hosts you define through the VPN)."
             echo
             read -p "Choose an option (1 / 2): " optn_cli_allwd_ips
 
