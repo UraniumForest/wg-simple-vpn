@@ -6,6 +6,7 @@ This script automates the creation of remote access VPNs, along with other netwo
 ### Port forwarding (Required before creating a remote access VPN)
 If your server is behind a NAT (e.g., a home router), you must configure Port Forwarding on your router so the external traffic reaches this server's UDP port (e.g., 51820). For example, if the VPN is listening on port 51820, you create a rule to redirect any UDP traffic hitting your router's public IP on port 51820 (external port) to your server's private IP on port 51820 (internal port).
 
+Example:
 <img width="1356" height="1024" alt="image" src="https://github.com/user-attachments/assets/ef673779-b51f-4a35-b35a-2aec6d15f927" />
 
 ### Client requirements (Required before Client Setup)
