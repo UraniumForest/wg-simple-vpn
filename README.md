@@ -81,16 +81,16 @@ Then, depending on the client's system, follow these steps:
 # Install Wireguard
 sudo apt install wireguard
 
-# Replace 'client.conf' with your actual file name
+# Replace 'client.conf' with your actual filename
 sudo cp client.conf /etc/wireguard/
 
-# (Optional) Enable auto-connect to the VPN on boot (using the filename without .conf)
+# (Optional) Enable auto-connect to the VPN on boot (replace 'client' with the filename without .conf)
 sudo systemctl enable wg-quick@client
 
-# Connect to the VPN right now (using the filename without .conf)
+# Connect to the VPN right now (replace 'client' with the filename without .conf)
 sudo systemctl start wg-quick@client
 ```
-If you want to stop the connection with the VPN, run the following command: 
+If you want to stop the connection with the VPN, run the following command (replace 'client' with the filename without .conf): 
 ```bash
 sudo systemctl stop wg-quick@client
 ```
