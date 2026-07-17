@@ -65,7 +65,7 @@ function check_dependencies() {
         fi
     done
 
-    if [ "$missing_dep" = true ]; then
+    if [[ "$missing_dep" = true ]]; then
         echo
         read -p "You must run your install script. Press [Enter] to exit..."
         clear
@@ -407,7 +407,7 @@ function clients_configuration() {
 			echo
 			pub_ip=$(curl -s --max-time 5 https://api.ipify.org || curl -s --max-time 5 icanhazip.com)
 
-			if [ -z "$pub_ip" ]
+			if [[ -z "$pub_ip" ]]
 			then
     			echo -e "Error: Couldn't show your public IP. Check it manually at https://whatismyipaddress.com"
 			else
@@ -415,7 +415,7 @@ function clients_configuration() {
 			fi
 
 			echo
-            read -p "Enter the connection address for client $((i + 1)) (e.g., $pub_ip:$srv_port): " cli_endpoint[$i]
+            read -p "Enter the connection address for client $((i + 1)) (e.g., ${pub_ip:-207.100.88.76}:${srv_port}): " cli_endpoint[$i]
 
             if [[ ${cli_endpoint[$i]} =~ $ipv4_w_port_format ]]
             then
