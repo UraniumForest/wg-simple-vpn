@@ -78,7 +78,7 @@ function common_configuration() {
     clear
     echo -e "${magenta}Notice: This configuration wizard is designed for IPv4 networks only. IPv6 is currently not supported.${color_reset}"
     echo
-    echo -e "${bold_blue}-------- Common configuration --------${color_reset}"
+    echo -e "${bold_blue}-------- Common Configuration --------${color_reset}"
     echo
 
     while true; do
@@ -135,7 +135,7 @@ function common_configuration() {
 
 
 function server_configuration() {
-    echo -e "${bold_blue}-------- Server configuration --------${color_reset}"
+    echo -e "${bold_blue}-------- Server Configuration --------${color_reset}"
     echo
 
     srv_priv=$(wg genkey)
@@ -230,7 +230,7 @@ function server_configuration() {
 
     nat_rule=false
     while true; do
-        echo -e "${bold_cyan}[NAT rule]${color_reset}"
+        echo -e "${bold_cyan}[NAT Rule]${color_reset}"
         echo
         echo -e "Notice: NAT (IP Masquerade) allows VPN clients to reach the internet by using the server's outbound interface. Recommended for most setups."
         echo
@@ -356,7 +356,7 @@ function server_configuration() {
 
 
 function clients_configuration() {
-    echo -e "${bold_blue}-------- Clients configuration --------${color_reset}"
+    echo -e "${bold_blue}-------- Clients Configuration --------${color_reset}"
     echo
 
     for ((i=0; i<num_clients; i++)); do
