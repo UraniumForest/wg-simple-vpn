@@ -405,6 +405,16 @@ function clients_configuration() {
             echo
 			echo -e "Important: If your server is behind a NAT (e.g., a home router), you must enter your PUBLIC IP address and the external port you configured for Port Forwarding in your router (see README for details)."
 			echo
+			pub_ip=$(curl -s --max-time 5 https://api.ipify.org || curl -s --max-time 5 icanhazip.com)
+
+			if [ -z "$pub_ip" ]
+			then
+    			echo -e "Error: Couldn't show your public IP. Check it manually at https://whatismyipaddress.com"
+			else
+				echo -e "Your public IP is: $pub_ip"
+			fi
+
+			echo
             read -p "Enter the connection address for client $((i + 1)) (e.g., 200.120.50.11:$srv_port): " cli_endpoint[$i]
 
             if [[ ${cli_endpoint[$i]} =~ $ipv4_w_port_format ]]
