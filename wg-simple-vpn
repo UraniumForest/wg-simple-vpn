@@ -415,7 +415,7 @@ function clients_configuration() {
 			fi
 
 			echo
-            read -p "Enter the connection address for client $((i + 1)) (e.g., 200.120.50.11:$srv_port): " cli_endpoint[$i]
+            read -p "Enter the connection address for client $((i + 1)) (e.g., $pub_ip:$srv_port): " cli_endpoint[$i]
 
             if [[ ${cli_endpoint[$i]} =~ $ipv4_w_port_format ]]
             then
