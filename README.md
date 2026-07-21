@@ -11,7 +11,7 @@ If your server is behind a NAT (e.g., a home router), you must configure Port Fo
 ### Client requirements (Required before Client Setup)
 If you specify a DNS server for a Debian/Ubuntu client, the resolvconf package must be installed on that system for the settings to take effect. If it is not installed, run:
 ```bash
-sudo apt update -y && sudo apt install -y resolvconf
+sudo apt update && sudo apt install -y resolvconf
 ```
 ## Installation
 ### Install git, clone the repository and navigate into the directory:
