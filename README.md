@@ -96,4 +96,4 @@ If you want to stop the connection with the VPN, run the following command (repl
 sudo systemctl stop wg-quick@client
 ```
 ## System Requirements For Server
-OS: Debian 11+, Ubuntu 20.04+.
+OS: Debian 11+, Ubuntu 22.04+.
