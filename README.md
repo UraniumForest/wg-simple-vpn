@@ -2,6 +2,9 @@
 ## Description
 This script automates the creation of remote access VPNs, along with other network configurations. It also generates QR codes for client configurations and allows you to check the status of all WireGuard VPNs.
 
+## Important information
+All commands mentioned below must be run as root
+
 ## Important Steps
 ### Port forwarding (Required before creating a remote access VPN)
 If your server is behind a NAT (e.g., a home router), you must configure Port Forwarding on your router so the external traffic reaches this server's UDP port (e.g., 51820). For example, if the VPN is listening on port 51820, you create a rule to redirect any UDP traffic hitting your router's public IP on port 51820 (external port) to your server's private IP on port 51820 (internal port).
@@ -11,35 +14,35 @@ If your server is behind a NAT (e.g., a home router), you must configure Port Fo
 ### Client requirements (Required before Client Setup)
 If you specify a DNS server for a Debian/Ubuntu client, the resolvconf package must be installed on that system for the settings to take effect. If it is not installed, run:
 ```bash
-sudo apt update && sudo apt install -y resolvconf
+apt update && apt install -y resolvconf
 ```
 ## Installation
 ### Install git, clone the repository and navigate into the directory:
 ```bash
-sudo apt install -y git
-sudo git clone https://github.com/UraniumForest/wg-simple-vpn.git
+apt install -y git
+git clone https://github.com/UraniumForest/wg-simple-vpn.git
 cd wg-simple-vpn
 ```
 ### Give execution permission to the installer and run it:
 ```bash
-sudo chmod +x install.sh
-sudo ./install.sh
+chmod +x install.sh
+./install.sh
 ```
 ## Usage
 ### Create a remote access VPN
 Configure the server and multiple clients through a guided wizard.
 ```bash
-sudo wg-simple-vpn add
+wg-simple-vpn add
 ```
 ### Display clients configuration in QR codes
 Choose a client to display its configuration as a QR code for easy scanning.
 ```bash
-sudo wg-simple-vpn show
+wg-simple-vpn show
 ```
 ### Remote access VPNs status
 Check handshakes, data transfer, and the state of active tunnels.
 ```bash
-sudo wg-simple-vpn status
+wg-simple-vpn status
 ```
 ## Project Structure
 ### wg-simple-vpn
@@ -66,7 +69,7 @@ Then, depending on the client's system, follow these steps:
 
 - Select "Scan from QR code".
 
-- Run `sudo wg-simple-vpn show` on your server, select a client and scan the generated QR code with your phone.
+- Run `wg-simple-vpn show` on your server, select a client and scan the generated QR code with your phone.
 
 - Give the VPN tunnel a name and switch it ON.
 
@@ -80,20 +83,20 @@ Then, depending on the client's system, follow these steps:
 ### Debian / Ubuntu
 ```bash
 # Install Wireguard
-sudo apt install -y wireguard
+apt install -y wireguard
 
 # Replace 'client.conf' with your actual filename
-sudo cp client.conf /etc/wireguard/
+cp client.conf /etc/wireguard/
 
 # (Optional) Enable auto-connect to the VPN on boot (replace 'client' with your filename without .conf)
-sudo systemctl enable wg-quick@client
+systemctl enable wg-quick@client
 
 # Connect to the VPN right now (replace 'client' with your filename without .conf)
-sudo systemctl start wg-quick@client
+systemctl start wg-quick@client
 ```
 If you want to stop the connection with the VPN, run the following command (replace 'client' with your filename without .conf): 
 ```bash
-sudo systemctl stop wg-quick@client
+systemctl stop wg-quick@client
 ```
 ## System Requirements For Server
 OS: Debian 11+, Ubuntu 22.04+.
