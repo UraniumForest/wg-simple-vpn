@@ -19,7 +19,7 @@ apt update && apt install -y resolvconf
 ## Installation
 ### Install git, clone the repository and navigate into the directory:
 ```bash
-apt install -y git
+apt update && apt install -y git
 git clone https://github.com/UraniumForest/wg-simple-vpn.git
 cd wg-simple-vpn
 ```
@@ -83,7 +83,7 @@ Then, depending on the client's system, follow these steps:
 ### Debian / Ubuntu
 ```bash
 # Install Wireguard
-apt install -y wireguard
+apt update && apt install -y wireguard
 
 # Replace 'client.conf' with your actual filename
 cp client.conf /etc/wireguard/
