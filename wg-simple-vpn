@@ -409,7 +409,7 @@ function clients_configuration() {
 
 			if [[ -z "$pub_ip" ]]
 			then
-    			echo -e "Error: Couldn't show your public IP. Check it manually at https://whatismyipaddress.com"
+    			echo -e "Error: Could not show your public IP. Check it manually at https://whatismyipaddress.com"
 			else
 				echo -e "Your public IP is: $pub_ip"
 			fi
@@ -433,7 +433,7 @@ function clients_configuration() {
             echo
             echo -e "Notice: DNS servers resolve domain names (like google.com). If no DNS is specified, the client will continue to use its current system DNS settings."
             echo
-            echo -e "1) Set primary and secondary DNS servers\n\n2) Only set a primary DNS server\n\n3) Don't set any DNS server"
+            echo -e "1) Set primary and secondary DNS servers\n\n2) Only set a primary DNS server\n\n3) Do not set any DNS server"
             echo
             read -p "Choose an option (1 / 2 / 3): " optn_cli_dns
 
