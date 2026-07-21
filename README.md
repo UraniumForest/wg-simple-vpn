@@ -14,7 +14,7 @@ If you specify a DNS server for a Debian/Ubuntu client, the resolvconf package m
 sudo apt update && sudo apt install resolvconf
 ```
 ## Installation
-### Clone the repository:
+### Clone the repository and access it:
 ```bash
 sudo git clone https://github.com/UraniumForest/wg-simple-vpn.git
 cd wg-simple-vpn
