@@ -11,12 +11,12 @@ If your server is behind a NAT (e.g., a home router), you must configure Port Fo
 ### Client requirements (Required before Client Setup)
 If you specify a DNS server for a Debian/Ubuntu client, the resolvconf package must be installed on that system for the settings to take effect. If it is not installed, run:
 ```bash
-sudo apt update && sudo apt install resolvconf
+sudo apt update -y && sudo apt install -y resolvconf
 ```
 ## Installation
 ### Install git, clone the repository and navigate into the directory:
 ```bash
-sudo apt install git
+sudo apt install -y git
 sudo git clone https://github.com/UraniumForest/wg-simple-vpn.git
 cd wg-simple-vpn
 ```
@@ -80,7 +80,7 @@ Then, depending on the client's system, follow these steps:
 ### Debian / Ubuntu
 ```bash
 # Install Wireguard
-sudo apt install wireguard
+sudo apt install -y wireguard
 
 # Replace 'client.conf' with your actual filename
 sudo cp client.conf /etc/wireguard/
