@@ -16,6 +16,7 @@ sudo apt update && sudo apt install resolvconf
 ## Installation
 ### Install git, clone the repository and navigate into the directory:
 ```bash
+sudo apt install git
 sudo git clone https://github.com/UraniumForest/wg-simple-vpn.git
 cd wg-simple-vpn
 ```
