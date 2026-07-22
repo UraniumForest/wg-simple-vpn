@@ -17,12 +17,12 @@ If your server is behind a NAT (e.g., a home router), you must configure DDNS (D
 <br>
 <br>
 - You set up a client description and generate a DDNS key: 
-
+<br>
 <img width="744" height="685" alt="image" src="https://github.com/user-attachments/assets/f911f6ae-2242-4a00-9816-b39f84472e3a" />
 <br>
 <br>
 - You copy the generated username and password: 
-
+<br>
 <img width="719" height="660" alt="image" src="https://github.com/user-attachments/assets/a78825cd-a6dd-46b9-b413-9364f95ea368" />
 <br>
 <br>
