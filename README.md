@@ -29,7 +29,7 @@ If your server is behind a NAT (e.g., a home router), you must configure DDNS (D
   - Service provider: no-ip
   - Host of the service provider: dynupdate.no-ip.com
   - Service port: 80
-<br>
+
 <img width="677" height="487" alt="image" src="https://github.com/user-attachments/assets/170af70b-e145-4be4-8462-9675620ad840" />
 
 ### Port forwarding (Required before creating a remote access VPN)
