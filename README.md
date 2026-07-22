@@ -10,9 +10,9 @@ All commands mentioned below must be run as root.
 If your server is behind a NAT (e.g., a home router), you must configure DDNS (Dynamic DNS) with a DDNS provider like "No-IP": 
 
 "No-IP" webpage: https://www.noip.com
-
+<br><br>
 - You create a hostname and enable DDNS for it:
-
+<br><br>
 <img width="1280" height="586" alt="image" src="https://github.com/user-attachments/assets/84f373a9-6d2b-4dd2-8843-6975d64e8328" />
 <br><br>
 - You set up a client description and generate a DDNS key: 
