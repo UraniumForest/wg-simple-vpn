@@ -2,6 +2,9 @@
 ## Description
 This script automates the creation of remote access VPNs, along with other network configurations. It also generates QR codes for client configurations and allows you to check the status of all WireGuard VPNs.
 
+## Virtualization software
+If you want to host this tool in a virtual machine you can use this OVA to import a VM with all the software needed installed: https://drive.google.com/file/d/1PG8JzKR3zofMlfNqVypcguZXy_FCk9hk/view?usp=sharing
+
 ## Important Information
 All commands mentioned below must be run as root
 
