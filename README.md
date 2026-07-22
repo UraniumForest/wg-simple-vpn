@@ -20,7 +20,7 @@ apt update && apt install -y resolvconf
 If you want to host this tool in a virtual machine, you can use this OVA to import a VM with all the software needed already installed: 
 👉 https://drive.google.com/file/d/1PG8JzKR3zofMlfNqVypcguZXy_FCk9hk/view?usp=sharing
 
-* Default Credentials: Username: `wg-user` / Password: `Passw0rd!`
+* **Default Credentials:** Username: `wg-user` / Password: `Passw0rd!`
 * Note: I strongly recommend that you change the password immediately using the `passwd` command after your first login.
 
 ## Normal Installation
