@@ -2,11 +2,8 @@
 ## Description
 This script automates the creation of remote access VPNs, along with other network configurations. It also generates QR codes for client configurations and allows you to check the status of all WireGuard VPNs.
 
-## Virtualization software
-If you want to host this tool in a virtual machine you can use this OVA to import a VM with all the software needed installed: https://drive.google.com/file/d/1PG8JzKR3zofMlfNqVypcguZXy_FCk9hk/view?usp=sharing
-
 ## Important Information
-All commands mentioned below must be run as root
+All commands mentioned below must be run as root.
 
 ## Important Steps
 ### Port forwarding (Required before creating a remote access VPN)
@@ -19,7 +16,13 @@ If you specify a DNS server for a Debian/Ubuntu client, the resolvconf package m
 ```bash
 apt update && apt install -y resolvconf
 ```
-## Installation
+## Installation in a virtual machine
+If you want to host this tool in a virtual machine, you can use this OVA to import a VM with all the software needed installed:
+https://drive.google.com/file/d/1PG8JzKR3zofMlfNqVypcguZXy_FCk9hk/view?usp=sharingDefault
+Credentials: 
+Username: wg-user / Password: Passw0rd! (I strongly recommend that you change the password using the passwd command)
+
+## Normal Installation
 ### Install git, clone the repository and navigate into the directory:
 ```bash
 apt update && apt install -y git
