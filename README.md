@@ -12,7 +12,7 @@ If your server is behind a NAT (e.g., a home router), you must configure DDNS (D
 "No-IP" webpage: https://www.noip.com
 
 - You create a hostname and enable DDNS for it:
-<br>
+
 <img width="2556" height="1172" alt="image" src="https://github.com/user-attachments/assets/84f373a9-6d2b-4dd2-8843-6975d64e8328" />
 <br><br>
 - You set up a client description and generate a DDNS key: 
