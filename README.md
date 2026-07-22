@@ -6,8 +6,31 @@ This script automates the creation of remote access VPNs, along with other netwo
 All commands mentioned below must be run as root.
 
 ## Important Steps
+### DDNS (Required before creating a remote access VPN)
+If your server is behind a NAT (e.g., a home router), you must configure DDNS with a DDNS provider like "No-IP": 
+- You create a hostname and enable DDNS for it.
+
+<img width="2556" height="1172" alt="image" src="https://github.com/user-attachments/assets/84f373a9-6d2b-4dd2-8843-6975d64e8328" />
+
+- You set up a client description and generate a DDNS key
+
+<img width="1488" height="1370" alt="image" src="https://github.com/user-attachments/assets/f911f6ae-2242-4a00-9816-b39f84472e3a" />
+
+- You copy the generated username and password
+
+<img width="1438" height="1320" alt="image" src="https://github.com/user-attachments/assets/a78825cd-a6dd-46b9-b413-9364f95ea368" />
+
+- You access the device that does NAT in your home (e.g., a home router) and configure a DDNS service with the credentials they gave you and the following data:
+
+  - Domain Name: all.ddnskey.com
+  - Service provider: no-ip
+  - Host of the service provider: dynupdate.no-ip.com
+  - Service port: 80
+
+<img width="1354" height="974" alt="image" src="https://github.com/user-attachments/assets/170af70b-e145-4be4-8462-9675620ad840" />
+
 ### Port forwarding (Required before creating a remote access VPN)
-If your server is behind a NAT (e.g., a home router), you must configure Port Forwarding on your router so the external traffic reaches this server's UDP port (e.g., 51820). For example, if the VPN is listening on port 51820, you create a rule to redirect any UDP traffic hitting your router's public IP on port 51820 (external port) to your server's private IP on port 51820 (internal port).
+If your server is behind a NAT (e.g., a home router), you must configure Port Forwarding on your router so the external traffic reaches this server's UDP port (e.g., 51820). For example, if the VPN is listening on port 51820, you create a rule to redirect any UDP traffic hitting your router's public IP on port 51820 (external port) to your server's private IP on port 51820 (internal port). 
 
 <img width="1356" height="1024" alt="image" src="https://github.com/user-attachments/assets/ef673779-b51f-4a35-b35a-2aec6d15f927" />
 
