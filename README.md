@@ -14,7 +14,7 @@ If your server is behind a NAT (e.g., a home router), you must configure DDNS (D
 - You create a hostname and enable DDNS for it:
 
 <img width="1280" height="586" alt="image" src="https://github.com/user-attachments/assets/84f373a9-6d2b-4dd2-8843-6975d64e8328" />
-
+<br><br>
 - You set up a client description and generate a DDNS key: 
 
 <img width="744" height="685" alt="image" src="https://github.com/user-attachments/assets/f911f6ae-2242-4a00-9816-b39f84472e3a" />
