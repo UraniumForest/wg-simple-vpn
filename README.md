@@ -25,17 +25,17 @@ If your server is behind a NAT (e.g., a home router), you must configure DDNS (D
 
 - Access the device that does NAT in your home (e.g., a home router) and configure a DDNS service with the credentials they gave you and the following data:
 
-  * Domain Name: all.ddnskey.com
-  * Service provider: no-ip
-  * Host of the service provider: dynupdate.no-ip.com
-  * Service port: 80
+  - Domain Name: all.ddnskey.com
+  - Service provider: no-ip
+  - Host of the service provider: dynupdate.no-ip.com
+  - Service port: 80
 
-<img width="677" height="487" alt="image" src="https://github.com/user-attachments/assets/170af70b-e145-4be4-8462-9675620ad840" />
+![image](https://github.com/user-attachments/assets/170af70b-e145-4be4-8462-9675620ad840)
 
 ### Port forwarding (Required before creating a remote access VPN)
 If your server is behind a NAT (e.g., a home router), you must configure Port Forwarding on your router so the external traffic reaches this server's UDP port (e.g., 51820). For example, if the VPN is listening on port 51820, you create a rule to redirect any UDP traffic hitting your router's public IP on port 51820 (external port) to your server's private IP on port 51820 (internal port): 
 
-<img width="678" height="512" alt="image" src="https://github.com/user-attachments/assets/ef673779-b51f-4a35-b35a-2aec6d15f927" />
+![image](https://github.com/user-attachments/assets/ef673779-b51f-4a35-b35a-2aec6d15f927)
 
 ### Client requirements (Required before Client Setup)
 If you specify a DNS server for a Debian/Ubuntu client, the resolvconf package must be installed on that system for the settings to take effect. If it is not installed, run:
