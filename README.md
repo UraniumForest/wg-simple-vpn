@@ -7,7 +7,7 @@ All commands mentioned below must be run as root.
 
 ## Important Steps
 ### DDNS (Required before creating a remote access VPN)
-If your server is behind a NAT (e.g., a home router), you must configure DDNS with a DDNS provider like "No-IP": 
+If your server is behind a NAT (e.g., a home router), you must configure DDNS (Dynamic DNS) with a DDNS provider like "No-IP": 
 - You create a hostname and enable DDNS for it.
 
 <img width="2556" height="1172" alt="image" src="https://github.com/user-attachments/assets/84f373a9-6d2b-4dd2-8843-6975d64e8328" />
