@@ -17,7 +17,7 @@ If you specify a DNS server for a Debian/Ubuntu client, the resolvconf package m
 apt update && apt install -y resolvconf
 ```
 ## Installation in a virtual machine
-If you want to host this tool in a virtual machine, you can use this OVA to import a VM with all the software needed installed: 
+If you want to host this tool in a virtual machine, you can use this OVA to import a VM with all the software needed already installed: 
 👉 https://drive.google.com/file/d/1PG8JzKR3zofMlfNqVypcguZXy_FCk9hk/view?usp=sharing
 
 * **Default Credentials:** Username: `wg-user` / Password: `Passw0rd!`
