@@ -45,7 +45,7 @@ apt update && apt install -y resolvconf
 ## Installation in a virtual machine
 If you want to host this tool in a virtual machine, you can use this OVA to import a VM (minimal installation of **Debian 13 (Trixie)**) with all the software needed already installed: 
 
-👉 https://drive.google.com/file/d/1L1ANrRaHF1l_y8CHE5ovecl7NIBZ82Sz/view?usp=sharing
+👉 https://drive.google.com/file/d/1PtzJauAkvh6QoVu2YibF1IOVNz8zURO1/view?usp=sharing
 
 * **User Credentials:** Username: `wg-user` / Password: `Passw0rd!`
 * **Root Credentials:** Username: `root` / Password: `Passw0rd!`
