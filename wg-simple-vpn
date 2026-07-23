@@ -428,7 +428,7 @@ function clients_configuration() {
                 break
             else
                 echo
-                read -p "Error: Invalid format. Make sure to include both the hostname/IPv4 and the port (e.g., example.mydomain.com:51820). Press [Enter] to continue..."
+                read -p "Error: Invalid format. Make sure to include both the hostname/IPv4 and the port (e.g., example.mydomain.com:${srv_port}). Press [Enter] to continue..."
                 clear
             fi
         done
