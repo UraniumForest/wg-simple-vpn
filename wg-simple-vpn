@@ -408,15 +408,15 @@ function clients_configuration() {
             echo
 			echo -e "Important:\n"
 			echo -e "- If your server is behind a NAT (e.g., a home router), you must enter your HOSTNAME (README --> DDNS) and the EXTERNAL PORT you configured for Port Forwarding in your router (README --> Port Forwarding).\n"
-			echo -e "It's not common but if you have a static public IP (if you don't know always use the method mentioned above), you can directly enter your PUBLIC IP and the EXTERNAL PORT you configured for Port Forwarding in your router (README --> Port Forwarding)."
+			echo -e "- It's not common but if you have a static public IP (if you don't know always use the method mentioned above), you can directly enter your PUBLIC IP and the EXTERNAL PORT you configured for Port Forwarding in your router (README --> Port Forwarding)."
 			echo
 			pub_ip=$(curl -s --max-time 5 https://api.ipify.org || curl -s --max-time 5 icanhazip.com)
 
 			if [[ -z "$pub_ip" ]]
 			then
-    			echo -e "Error: Could not show your public IP. Check it manually at https://whatismyipaddress.com"
+    			echo -e "Error: Could not show your public IP. In case you need it, check it manually at https://whatismyipaddress.com"
 			else
-				echo -e "Your public IP is: $pub_ip"
+				echo -e "- In case you need it, here is your public IP: $pub_ip"
 			fi
 
 			echo
