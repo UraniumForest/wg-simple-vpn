@@ -46,16 +46,7 @@ If you specify a DNS server for a Debian/Ubuntu client, the resolvconf package m
 ```bash
 apt update && apt install -y resolvconf
 ```
-## Installation in a virtual machine
-If you want to host this tool in a virtual machine, you can use this OVA to import a VM (minimal installation of **Debian 13 (Trixie)**) with all the software needed already installed: 
-
-👉 https://drive.google.com/file/d/1PtzJauAkvh6QoVu2YibF1IOVNz8zURO1/view?usp=sharing
-
-* **User Credentials:** Username: `wg-user` / Password: `Passw0rd!`
-* **Root Credentials:** Username: `root` / Password: `Passw0rd!`
-* Note: I strongly recommend that you change both passwords immediately using the `passwd wg-user` and `passwd root` commands after your first login.
-
-## Normal Installation
+## Installation
 ### Install git, clone the repository and navigate into the directory:
 ```bash
 apt update && apt install -y git
