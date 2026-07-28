@@ -15,7 +15,7 @@ If your server is behind a NAT (e.g., a home router) and you don't have a static
 
 "No-IP" webpage: https://www.noip.com
 
-- Create a hostname (select "A" in the "type" field and enter a random IP in the "IPv4" field, as your router will automatically update it with your public IP) and enable DDNS for it: 
+- Select "A" in the "type" field, enter a hostname, input a random IP in the "IPv4" field (your router will automatically update it with your public IP), and enable DDNS for the hostname:  
 
 ![image](https://github.com/user-attachments/assets/84f373a9-6d2b-4dd2-8843-6975d64e8328)
 
