@@ -57,7 +57,7 @@ fi
 
 # --- Functions ---
 function check_dependencies() {
-    local dependencies=("wg" "qrencode" "iptables" "ss" "ip")
+    local dependencies=("wg" "curl" "qrencode" "iptables" "ss" "ip")
     local missing_dep=false
 
     for dep in "${dependencies[@]}"; do
