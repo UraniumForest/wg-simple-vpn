@@ -7,7 +7,8 @@ This script automates the creation of remote access VPNs, along with other netwo
 https://github.com/user-attachments/assets/96e1d9fc-2bc6-4543-97d6-eaca64a85a3a
 
 ## Important Information
-All commands mentioned below must be run as root.
+- This script currently only supports IPv4. 
+- All commands mentioned below must be run as root. 
 
 ## Important Steps
 ### DDNS (Required before creating a remote access VPN)
