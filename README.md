@@ -8,6 +8,7 @@ https://github.com/user-attachments/assets/96e1d9fc-2bc6-4543-97d6-eaca64a85a3a
 
 ## Important Information
 - This script currently only supports IPv4. 
+- If your network is behind a CGNAT, this script won't work for you as you can't do port forwarding. As an alternative, you can configure a Cloudflare Tunnel. 
 - All commands mentioned below must be run as root. 
 
 ## Important Steps
