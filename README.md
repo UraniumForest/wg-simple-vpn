@@ -66,7 +66,7 @@ Configure the server and multiple clients through a guided wizard.
 ```bash
 wg-simple-vpn add
 ```
-### Display clients configuration in QR codes
+### Display client configuration as a QR code
 Choose a client to display its configuration as a QR code for easy scanning.
 ```bash
 wg-simple-vpn show
