@@ -71,7 +71,7 @@ Choose a client to display its configuration as a QR code for easy scanning.
 ```bash
 wg-simple-vpn show
 ```
-### Remote access VPNs status
+### Remote access VPN status
 Check handshakes, data transfer, and the state of active tunnels.
 ```bash
 wg-simple-vpn status
