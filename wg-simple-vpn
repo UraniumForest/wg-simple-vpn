@@ -358,8 +358,8 @@ function server_configuration() {
 }
 
 
-function clients_configuration() {
-    echo -e "${bold_blue}-------- Clients Configuration --------${color_reset}"
+function client_configuration() {
+    echo -e "${bold_blue}-------- Client Configuration --------${color_reset}"
     echo
 
     for ((i=0; i<num_clients; i++)); do
@@ -796,7 +796,7 @@ function setup () {
 }
 
 
-function show_clients_qr() {
+function show_client_qr() {
     clear
     while true; do
         echo -e "${bold_cyan}[Current WireGuard Clients]${color_reset}"
@@ -836,7 +836,7 @@ function show_clients_qr() {
 }
 
 
-function show_tunnels_status() {
+function show_tunnel_status() {
     clear
     echo -e "${bold_cyan}[Current Wireguard Status]${color_reset}"
     echo
@@ -853,19 +853,19 @@ case "$1" in
         check_dependencies
         common_configuration
         server_configuration
-        clients_configuration
+        client_configuration
         confirmation
         setup
         ;;
 
     show)
         check_dependencies
-        show_clients_qr
+        show_client_qr
         ;;
 
     status)
         check_dependencies
-        show_tunnels_status
+        show_tunnel_status
         ;;
     
     *)
